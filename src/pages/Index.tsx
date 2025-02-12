@@ -5,15 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { MapComponent } from '@/components/MapComponent';
 import { DeliveryList } from '@/components/DeliveryList';
+import { AddDeliveryAgent } from '@/components/AddDeliveryAgent';
 import { StatsGrid } from '@/components/StatsGrid';
 import { MapPin, Package, Truck, Users } from 'lucide-react';
 
 const Index = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [showAddAgent, setShowAddAgent] = useState(false);
 
   useEffect(() => {
-    // محاكاة تحميل البيانات
     setTimeout(() => {
       setLoading(false);
       toast({
@@ -28,11 +29,25 @@ const Index = () => {
       <header className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold">لوحة التحكم</h1>
-          <Badge variant="outline" className="px-4 py-1">
-            مباشر
-          </Badge>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowAddAgent(!showAddAgent)}
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+            >
+              {showAddAgent ? "إخفاء النموذج" : "إضافة مندوب جديد"}
+            </button>
+            <Badge variant="outline" className="px-4 py-1">
+              مباشر
+            </Badge>
+          </div>
         </div>
       </header>
+
+      {showAddAgent && (
+        <div className="mb-6">
+          <AddDeliveryAgent />
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatsCard
