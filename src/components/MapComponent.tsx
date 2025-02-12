@@ -8,11 +8,13 @@ export const MapComponent = () => {
   const map = useRef<mapboxgl.Map | null>(null);
   const [apiKey, setApiKey] = useState('');
   const [isMapInitialized, setIsMapInitialized] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!mapContainer.current || !apiKey || isMapInitialized) return;
 
     try {
+      console.log('محاولة تهيئة الخريطة مع المفتاح:', apiKey);
       mapboxgl.accessToken = apiKey;
       
       map.current = new mapboxgl.Map({
@@ -24,9 +26,19 @@ export const MapComponent = () => {
 
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
       
-      setIsMapInitialized(true);
+      map.current.on('load', () => {
+        console.log('تم تحميل الخريطة بنجاح');
+        setIsMapInitialized(true);
+      });
+
+      map.current.on('error', (e) => {
+        console.error('خطأ في الخريطة:', e);
+        setError(`خطأ في تحميل الخريطة: ${e.error.message}`);
+      });
+
     } catch (error) {
       console.error('خطأ في تهيئة الخريطة:', error);
+      setError(`خطأ في تهيئة الخريطة: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
     }
 
     return () => {
@@ -39,11 +51,13 @@ export const MapComponent = () => {
 
   const handleApiKeySubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     if (map.current) {
       map.current.remove();
       setIsMapInitialized(false);
     }
     const input = (e.target as HTMLFormElement).apiKey.value;
+    console.log('تم إدخال مفتاح API جديد:', input);
     setApiKey(input);
   };
 
@@ -68,6 +82,9 @@ export const MapComponent = () => {
                 تأكيد
               </button>
             </div>
+            {error && (
+              <p className="text-sm text-red-500 mt-2">{error}</p>
+            )}
             <p className="text-xs mt-2 text-muted-foreground">
               يمكنك الحصول على مفتاح API من{' '}
               <a
