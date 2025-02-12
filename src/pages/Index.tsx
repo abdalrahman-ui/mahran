@@ -2,11 +2,13 @@
 import { useEffect, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { MapComponent } from '@/components/MapComponent';
 import { DeliveryList } from '@/components/DeliveryList';
 import { AddDeliveryAgent } from '@/components/AddDeliveryAgent';
-import { StatsGrid } from '@/components/StatsGrid';
+import { OrdersSection } from '@/components/OrdersSection';
+import { ReportsSection } from '@/components/ReportsSection';
 import { MapPin, Package, Truck, Users } from 'lucide-react';
 
 const Index = () => {
@@ -76,17 +78,35 @@ const Index = () => {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="glass-card p-4 h-[500px]">
-          <h2 className="text-xl font-semibold mb-4">خريطة المناديب</h2>
-          <MapComponent />
-        </Card>
-        
-        <Card className="glass-card p-4 h-[500px] overflow-auto">
-          <h2 className="text-xl font-semibold mb-4">قائمة المناديب</h2>
-          <DeliveryList />
-        </Card>
-      </div>
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="dashboard">لوحة التحكم</TabsTrigger>
+          <TabsTrigger value="orders">الطلبات</TabsTrigger>
+          <TabsTrigger value="reports">التقارير</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card className="glass-card p-4 h-[500px]">
+              <h2 className="text-xl font-semibold mb-4">خريطة المناديب</h2>
+              <MapComponent />
+            </Card>
+            
+            <Card className="glass-card p-4 h-[500px] overflow-auto">
+              <h2 className="text-xl font-semibold mb-4">قائمة المناديب</h2>
+              <DeliveryList />
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="orders">
+          <OrdersSection />
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <ReportsSection />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
