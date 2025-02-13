@@ -4,6 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Download } from "lucide-react";
+import * as XLSX from 'xlsx';
 import {
   Select,
   SelectContent,
@@ -13,6 +16,7 @@ import {
 } from "@/components/ui/select";
 
 export const ReportsSection = () => {
+  const { toast } = useToast();
   const [selectedAgent, setSelectedAgent] = useState<string>("");
   const [dateRange, setDateRange] = useState({
     from: "",
@@ -25,10 +29,20 @@ export const ReportsSection = () => {
     { id: "3", name: "عمر أحمد" },
   ];
 
-  const handleGenerateReport = () => {
-    console.log("توليد تقرير بالمعايير:", {
-      agent: selectedAgent,
-      dateRange,
+  const handleGenerateReport = (type: 'agent' | 'general') => {
+    // هنا سيتم إضافة منطق توليد التقرير الفعلي
+    const reportData = type === 'agent' ? 
+      [{ agent: 'خالد محمد', orders: 25, completedOrders: 20, revenue: 5000 }] :
+      [{ totalOrders: 150, activeAgents: 12, totalRevenue: 25000 }];
+
+    const worksheet = XLSX.utils.json_to_sheet(reportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, type === 'agent' ? "Agent Report" : "General Report");
+    XLSX.writeFile(workbook, `${type}-report.xlsx`);
+
+    toast({
+      title: "تم توليد التقرير",
+      description: "تم تصدير التقرير إلى ملف Excel"
     });
   };
 
@@ -72,8 +86,13 @@ export const ReportsSection = () => {
               />
             </div>
           </div>
-          <Button onClick={handleGenerateReport} className="w-full">
-            توليد التقرير
+          <Button 
+            onClick={() => handleGenerateReport('agent')} 
+            className="w-full"
+            variant="default"
+          >
+            <Download className="w-4 h-4 ml-2" />
+            توليد تقرير المندوب
           </Button>
         </div>
       </Card>
@@ -97,7 +116,12 @@ export const ReportsSection = () => {
               />
             </div>
           </div>
-          <Button className="w-full">
+          <Button 
+            onClick={() => handleGenerateReport('general')} 
+            className="w-full"
+            variant="default"
+          >
+            <Download className="w-4 h-4 ml-2" />
             توليد التقرير العام
           </Button>
         </div>
