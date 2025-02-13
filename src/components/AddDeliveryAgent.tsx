@@ -24,7 +24,7 @@ export const AddDeliveryAgent = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // هنا يمكن إضافة منطق حفظ البيانات
+    // هنا سيتم إضافة منطق حفظ البيانات
     console.log(formData);
     toast({
       title: "تم إضافة المندوب بنجاح",

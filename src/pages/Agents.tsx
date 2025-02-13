@@ -1,6 +1,7 @@
 
 import { DeliveryList } from "@/components/DeliveryList";
 import { MapComponent } from "@/components/MapComponent";
+import { AddDeliveryAgent } from "@/components/AddDeliveryAgent";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
@@ -18,15 +19,20 @@ const Agents = () => {
           </Button>
         </Link>
       </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="glass-card p-4 h-[500px]">
-          <h2 className="text-xl font-semibold mb-4">خريطة المناديب</h2>
-          <MapComponent />
-        </Card>
-        <Card className="glass-card p-4 h-[500px] overflow-auto">
-          <h2 className="text-xl font-semibold mb-4">قائمة المناديب</h2>
-          <DeliveryList />
-        </Card>
+      
+      <div className="space-y-6">
+        <AddDeliveryAgent />
+        
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="glass-card p-4 h-[500px]">
+            <h2 className="text-xl font-semibold mb-4">خريطة المناديب</h2>
+            <MapComponent />
+          </Card>
+          <Card className="glass-card p-4 h-[500px] overflow-auto">
+            <h2 className="text-xl font-semibold mb-4">قائمة المناديب</h2>
+            <DeliveryList />
+          </Card>
+        </div>
       </div>
     </div>
   );
