@@ -1,138 +1,72 @@
 
-import { useEffect, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { MapComponent } from '@/components/MapComponent';
-import { DeliveryList } from '@/components/DeliveryList';
-import { AddDeliveryAgent } from '@/components/AddDeliveryAgent';
-import { OrdersSection } from '@/components/OrdersSection';
-import { ReportsSection } from '@/components/ReportsSection';
-import { MapPin, Package, Truck, Users } from 'lucide-react';
+import { StatsGrid } from '@/components/StatsGrid';
+import { Link } from "react-router-dom";
+import { MapPin, Package, Users, FileText } from 'lucide-react';
 
 const Index = () => {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [showAddAgent, setShowAddAgent] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-      toast({
-        title: "تم تحديث البيانات",
-        description: "تم تحديث حالة المناديب بنجاح",
-      });
-    }, 1000);
-  }, []);
 
   return (
     <div className="min-h-screen p-4 sm:p-6 animate-fade-in">
       <header className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold">لوحة التحكم</h1>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowAddAgent(!showAddAgent)}
-              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-            >
-              {showAddAgent ? "إخفاء النموذج" : "إضافة مندوب جديد"}
-            </button>
-            <Badge variant="outline" className="px-4 py-1">
-              مباشر
-            </Badge>
-          </div>
+          <Badge variant="outline" className="px-4 py-1">
+            مباشر
+          </Badge>
         </div>
       </header>
 
-      {showAddAgent && (
-        <div className="mb-6">
-          <AddDeliveryAgent />
-        </div>
-      )}
+      <StatsGrid />
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <StatsCard
-          title="المناديب النشطين"
-          value="12"
-          icon={<Users className="h-4 w-4" />}
-          trend="+2"
-        />
-        <StatsCard
-          title="الطلبات الجارية"
-          value="28"
-          icon={<Package className="h-4 w-4" />}
-          trend="+5"
-        />
-        <StatsCard
-          title="طلبات مكتملة اليوم"
-          value="145"
-          icon={<Truck className="h-4 w-4" />}
-          trend="+22"
-        />
-        <StatsCard
-          title="المواقع النشطة"
-          value="8"
-          icon={<MapPin className="h-4 w-4" />}
-          trend="-1"
-        />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6">
+        <Link to="/agents">
+          <Card className="p-6 hover:bg-muted/50 transition-colors cursor-pointer">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Users className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">المناديب</h3>
+                <p className="text-sm text-muted-foreground">إدارة وتتبع المناديب</p>
+              </div>
+            </div>
+          </Card>
+        </Link>
+
+        <Link to="/orders">
+          <Card className="p-6 hover:bg-muted/50 transition-colors cursor-pointer">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Package className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">الطلبات</h3>
+                <p className="text-sm text-muted-foreground">إدارة ومتابعة الطلبات</p>
+              </div>
+            </div>
+          </Card>
+        </Link>
+
+        <Link to="/reports">
+          <Card className="p-6 hover:bg-muted/50 transition-colors cursor-pointer">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <FileText className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">التقارير</h3>
+                <p className="text-sm text-muted-foreground">تقارير وإحصائيات</p>
+              </div>
+            </div>
+          </Card>
+        </Link>
       </div>
-
-      <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="dashboard">لوحة التحكم</TabsTrigger>
-          <TabsTrigger value="orders">الطلبات</TabsTrigger>
-          <TabsTrigger value="reports">التقارير</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="dashboard">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="glass-card p-4 h-[500px]">
-              <h2 className="text-xl font-semibold mb-4">خريطة المناديب</h2>
-              <MapComponent />
-            </Card>
-            
-            <Card className="glass-card p-4 h-[500px] overflow-auto">
-              <h2 className="text-xl font-semibold mb-4">قائمة المناديب</h2>
-              <DeliveryList />
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="orders">
-          <OrdersSection />
-        </TabsContent>
-
-        <TabsContent value="reports">
-          <ReportsSection />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };
-
-const StatsCard = ({ title, value, icon, trend }: { 
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-  trend: string;
-}) => (
-  <Card className="glass-card p-4">
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm text-muted-foreground">{title}</p>
-        <h3 className="text-2xl font-bold mt-1">{value}</h3>
-      </div>
-      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-        {icon}
-      </div>
-    </div>
-    <div className="mt-4">
-      <Badge variant={trend.startsWith('+') ? 'default' : 'destructive'}>
-        {trend} من أمس
-      </Badge>
-    </div>
-  </Card>
-);
 
 export default Index;
