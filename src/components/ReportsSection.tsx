@@ -32,8 +32,8 @@ export const ReportsSection = () => {
   const handleGenerateReport = (type: 'agent' | 'general') => {
     // هنا سيتم إضافة منطق توليد التقرير الفعلي
     const reportData = type === 'agent' ? 
-      [{ agent: 'خالد محمد', orders: 25, completedOrders: 20, revenue: 5000 }] :
-      [{ totalOrders: 150, activeAgents: 12, totalRevenue: 25000 }];
+      [{ agent: 'خالد محمد', advances: 2, totalAmount: 5000, remainingAmount: 3000 }] :
+      [{ totalAdvances: 150, totalAmount: 250000, totalAgents: 12 }];
 
     const worksheet = XLSX.utils.json_to_sheet(reportData);
     const workbook = XLSX.utils.book_new();
