@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 type Language = 'ar' | 'en' | 'hi' | 'ur';
@@ -252,7 +251,7 @@ const translations: Translations = {
     ar: 'قلة طلبات',
     en: 'Few Orders',
     hi: 'कम ऑर्डर',
-    ur: 'کم آرڈرز',
+    ur: 'کم آرडرز',
   },
   salary: {
     ar: 'راتب',
@@ -313,6 +312,180 @@ const translations: Translations = {
     en: 'Notifications',
     hi: 'सूचनाएं',
     ur: 'اطلاعات',
+  },
+  overview: {
+    ar: 'نظرة عامة',
+    en: 'Overview',
+    hi: 'अवलोकन',
+    ur: 'جائزہ',
+  },
+  regions: {
+    ar: 'المناطق',
+    en: 'Regions',
+    hi: 'क्षेत्र',
+    ur: 'علاقے',
+  },
+  regional: {
+    ar: 'إقليمي',
+    en: 'Regional',
+    hi: 'क्षेत्रीय',
+    ur: 'علاقائی',
+  },
+  regionalDistribution: {
+    ar: 'التوزيع الإقليمي',
+    en: 'Regional Distribution',
+    hi: 'क्षेत्रीय वितरण',
+    ur: 'علاقائی تقسیم',
+  },
+  userRegistration: {
+    ar: 'تسجيل المستخدمين',
+    en: 'User Registration',
+    hi: 'उपयोगकर्ता पंजीकरण',
+    ur: 'صارف کی رجسٹریشن',
+  },
+  usersByRole: {
+    ar: 'المستخدمون حسب الدور',
+    en: 'Users by Role',
+    hi: 'भूमिका के अनुसार उपयोगकर्ता',
+    ur: 'کردار کے مطابق صارفین',
+  },
+  ticketStats: {
+    ar: 'إحصائيات التذاكر',
+    en: 'Ticket Statistics',
+    hi: 'टिकट आंकड़े',
+    ur: 'ٹکٹ کے اعداد و شمار',
+  },
+  recentActivity: {
+    ar: 'النشاط الأخير',
+    en: 'Recent Activity',
+    hi: 'हाल की गतिविधि',
+    ur: 'حالیہ سرگرمی',
+  },
+  noRecentActivity: {
+    ar: 'لا يوجد نشاط حديث',
+    en: 'No recent activity',
+    hi: 'कोई हालिया गतिविधि नहीं',
+    ur: 'کوئی حالیہ سرگرمی نہیں',
+  },
+  selectRole: {
+    ar: 'اختر الدور',
+    en: 'Select Role',
+    hi: 'भूमिका चुनें',
+    ur: 'کردار منتخب کریں',
+  },
+  add: {
+    ar: 'إضافة',
+    en: 'Add',
+    hi: 'जोड़ें',
+    ur: 'شامل کریں',
+  },
+  update: {
+    ar: 'تحديث',
+    en: 'Update',
+    hi: 'अपडेट',
+    ur: 'اپ ڈیٹ کریں',
+  },
+  searchUsers: {
+    ar: 'البحث عن مستخدمين',
+    en: 'Search Users',
+    hi: 'उपयोगकर्ता खोजें',
+    ur: 'صارفین تلاش کریں',
+  },
+  allRoles: {
+    ar: 'كل الأدوار',
+    en: 'All Roles',
+    hi: 'सभी भूमिकाएँ',
+    ur: 'تمام کردار',
+  },
+  allStatuses: {
+    ar: 'كل الحالات',
+    en: 'All Statuses',
+    hi: 'सभी स्थितियां',
+    ur: 'تمام حالات',
+  },
+  noUsersFound: {
+    ar: 'لم يتم العثور على مستخدمين',
+    en: 'No users found',
+    hi: 'कोई उपयोगकर्ता नहीं मिला',
+    ur: 'کوئی صارف نہیں ملا',
+  },
+  addTicketType: {
+    ar: 'إضافة نوع تذكرة',
+    en: 'Add Ticket Type',
+    hi: 'टिकट प्रकार जोड़ें',
+    ur: 'ٹکٹ کی قسم شامل کریں',
+  },
+  editTicketType: {
+    ar: 'تعديل نوع التذكرة',
+    en: 'Edit Ticket Type',
+    hi: 'टिकट प्रकार संपादित करें',
+    ur: 'ٹکٹ کی قسم میں ترمیم کریں',
+  },
+  requiresApproval: {
+    ar: 'يتطلب موافقة',
+    en: 'Requires Approval',
+    hi: 'अनुमोदन की आवश्यकता है',
+    ur: 'منظوری کی ضرورت ہے',
+  },
+  active: {
+    ar: 'نشط',
+    en: 'Active',
+    hi: 'सक्रिय',
+    ur: 'فعال',
+  },
+  inactive: {
+    ar: 'غير نشط',
+    en: 'Inactive',
+    hi: 'निष्क्रिय',
+    ur: 'غیر فعال',
+  },
+  yes: {
+    ar: 'نعم',
+    en: 'Yes',
+    hi: 'हाँ',
+    ur: 'ہاں',
+  },
+  no: {
+    ar: 'لا',
+    en: 'No',
+    hi: 'नहीं',
+    ur: 'نہیں',
+  },
+  open: {
+    ar: 'مفتوح',
+    en: 'Open',
+    hi: 'खुला',
+    ur: 'کھلا',
+  },
+  loading: {
+    ar: 'جار التحميل',
+    en: 'Loading',
+    hi: 'लोड हो रहा है',
+    ur: 'لوڈ ہو رہا ہے',
+  },
+  createNewTicket: {
+    ar: 'إنشاء تذكرة جديدة',
+    en: 'Create New Ticket',
+    hi: 'नया टिकट बनाएं',
+    ur: 'نیا ٹکٹ بنائیں',
+  },
+  tickets: {
+    ar: 'التذاكر',
+    en: 'Tickets',
+    hi: 'टिकट',
+    ur: 'ٹکٹس',
+  },
+  pendingTickets: {
+    ar: 'تذاكر قيد الانتظار',
+    en: 'Pending Tickets',
+    hi: 'लंबित टिकट',
+    ur: 'زیر التواء ٹکٹس',
+  },
+  language: {
+    ar: 'اللغة',
+    en: 'Language',
+    hi: 'भाषा',
+    ur: 'زبان',
   }
 };
 
