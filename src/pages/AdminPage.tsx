@@ -1,13 +1,23 @@
 
 import LoginForm from "@/components/LoginForm";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AdminPage = () => {
   const { t } = useLanguage();
+  const { login, isAuthenticated, isLoading, error, user } = useAuth();
+  const navigate = useNavigate();
   
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'admin') {
+      navigate('/admin/dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);
+
   const handleLogin = (username: string, password: string) => {
-    console.log("Admin login:", { username, password });
-    // Add actual login logic here
+    login(username, password);
   };
 
   return (
@@ -15,6 +25,8 @@ const AdminPage = () => {
       <LoginForm 
         onSubmit={handleLogin}
         title={t('admin')}
+        isLoading={isLoading}
+        error={error}
       />
     </div>
   );

@@ -1,13 +1,23 @@
 
 import LoginForm from "@/components/LoginForm";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const SupervisorPage = () => {
   const { t } = useLanguage();
+  const { login, isAuthenticated, isLoading, error, user } = useAuth();
+  const navigate = useNavigate();
   
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'supervisor') {
+      navigate('/supervisor/dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);
+
   const handleLogin = (username: string, password: string) => {
-    console.log("Supervisor login:", { username, password });
-    // Add actual login logic here
+    login(username, password);
   };
 
   return (
@@ -15,6 +25,8 @@ const SupervisorPage = () => {
       <LoginForm 
         onSubmit={handleLogin}
         title={t('supervisors')}
+        isLoading={isLoading}
+        error={error}
       />
     </div>
   );
