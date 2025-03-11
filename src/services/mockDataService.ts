@@ -1,5 +1,6 @@
 
 import { User, UserStatus, TicketType, TicketStatus, Ticket, Agent, UserRole } from "@/types";
+import { v4 as uuidv4 } from 'uuid';
 
 // قائمة المستخدمين
 const users: User[] = [
@@ -211,13 +212,43 @@ export const getTicketsByAgent = (agentId: string) => {
   return tickets.filter(ticket => ticket.agentId === agentId);
 };
 
+// تصحيح الاسم لتطابق الاستدعاء في الصفحة
+export const getTicketsByAgentId = (agentId: string) => {
+  return tickets.filter(ticket => ticket.agentId === agentId);
+};
+
+// دالة إضافة تذكرة جديدة
+export const addTicket = (ticketData: Omit<Ticket, 'id' | 'ticketId' | 'createdAt' | 'updatedAt'>): Ticket => {
+  const newTicket: Ticket = {
+    id: uuidv4(),
+    ticketId: `TKT-${Math.floor(Math.random() * 90000) + 10000}`,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...ticketData
+  };
+  
+  tickets.push(newTicket);
+  return newTicket;
+};
+
 // دالة جلب المناديب
 export const getAgents = () => {
   return [...agents];
 };
 
 // دالة إضافة مندوب جديد
-export const addAgent = (agent: Agent) => {
-  agents.push(agent);
-  return agent;
+export const addAgent = (agent: Agent): Agent => {
+  // نتأكد من وجود كل الحقول المطلوبة
+  const newAgent: Agent = {
+    id: agent.id || uuidv4(),
+    name: agent.name,
+    idNumber: agent.idNumber,
+    region: agent.region,
+    createdAt: agent.createdAt || new Date(),
+    updatedAt: agent.updatedAt || new Date(),
+    createdBy: agent.createdBy
+  };
+  
+  agents.push(newAgent);
+  return newAgent;
 };
