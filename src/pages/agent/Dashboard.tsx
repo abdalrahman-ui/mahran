@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
@@ -9,11 +9,16 @@ import { CircleDot, Package, Ticket } from "lucide-react";
 import RequireAuth from "@/components/layout/RequireAuth";
 
 const AgentDashboard = () => {
-  const { t } = useLanguage();
+  const { t, setLanguage } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Mock data - in a real app this would come from an API
+  useEffect(() => {
+    // تعيين اللغة العربية كلغة افتراضية
+    setLanguage('ar');
+  }, [setLanguage]);
+
+  // بيانات تجريبية - في التطبيق الحقيقي ستأتي من واجهة برمجة التطبيقات
   const stats = {
     openTickets: 3,
     pendingTickets: 2,

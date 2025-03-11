@@ -27,7 +27,7 @@ import SupervisorDashboard from "./pages/supervisor/Dashboard";
 import SupervisorAgents from "./pages/supervisor/Agents";
 
 // Agent Routes
-import AgentDashboard from "./pages/agent/Dashboard";
+import AgentDashboard from "@/pages/agent/Dashboard";
 import AgentTickets from "./pages/agent/Tickets";
 import AgentNewTicket from "./pages/agent/NewTicket";
 
