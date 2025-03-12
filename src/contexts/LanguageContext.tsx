@@ -486,6 +486,12 @@ const translations: Translations = {
     en: 'Language',
     hi: 'भाषा',
     ur: 'زبان',
+  },
+  back: {
+    ar: 'رجوع',
+    en: 'Back',
+    hi: 'वापस',
+    ur: 'واپس',
   }
 };
 
