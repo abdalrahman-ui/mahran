@@ -1,35 +1,16 @@
 
-import LoginForm from "@/components/LoginForm";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AdminPage = () => {
-  const { t } = useLanguage();
-  const { login, isAuthenticated, isLoading, error, user } = useAuth();
   const navigate = useNavigate();
   
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'admin') {
-      navigate('/admin/dashboard');
-    }
-  }, [isAuthenticated, user, navigate]);
+    // Automatically navigate to admin dashboard without login
+    navigate('/admin/dashboard');
+  }, [navigate]);
 
-  const handleLogin = (username: string, password: string) => {
-    login(username, password);
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 p-6">
-      <LoginForm 
-        onSubmit={handleLogin}
-        title={t('admin')}
-        isLoading={isLoading}
-        error={error}
-      />
-    </div>
-  );
+  return null;
 };
 
 export default AdminPage;

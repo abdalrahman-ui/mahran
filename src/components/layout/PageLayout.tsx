@@ -19,7 +19,7 @@ const PageLayout = ({ children, title, role }: PageLayoutProps) => {
   const navigate = useNavigate();
 
   const handleGoBack = () => {
-    navigate(-1);
+    navigate('/');  // Always navigate to home page
   };
 
   return (
