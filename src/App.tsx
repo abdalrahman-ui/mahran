@@ -17,6 +17,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
 import AdminTicketTypes from "./pages/admin/TicketTypes";
+import AdminTickets from "./pages/admin/Tickets";
 
 // Manager Routes
 import ManagerDashboard from "./pages/manager/Dashboard";
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/ticket-types" element={<AdminTicketTypes />} />
+              <Route path="/admin/tickets" element={<AdminTickets />} />
               
               {/* Manager Routes */}
               <Route path="/manager" element={<ManagerPage />} />

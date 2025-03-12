@@ -1,250 +1,306 @@
 
+import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import RequireAuth from "@/components/layout/RequireAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card } from "@/components/ui/card";
-import { useState, useEffect } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getSystemStats, getTickets, getTicketTypes } from "@/services/mockDataService";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from "recharts";
+import { CalendarRange, Users, UserCheck, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 
 const AdminDashboard = () => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [dateRange, setDateRange] = useState<"daily" | "weekly" | "monthly">("daily");
   
-  // بيانات إحصائية (في التطبيق الحقيقي ستأتي من واجهة برمجة التطبيقات)
-  const userStats = {
-    total: 15,
-    pending: 4, 
-    approved: 10,
-    rejected: 1
-  };
+  // الحصول على إحصائيات النظام
+  const stats = getSystemStats();
+  const tickets = getTickets();
+  const ticketTypes = getTicketTypes();
   
-  const ticketStats = {
-    total: 156,
-    open: 45,
-    closed: 92,
-    pending: 19
-  };
+  // بيانات للرسم البياني للتذاكر حسب النوع
+  const ticketTypeData = ticketTypes.map(type => {
+    const count = tickets.filter(ticket => ticket.type === type.key).length;
+    return {
+      name: type.name,
+      value: count,
+    };
+  });
   
-  const regionalData = [
-    { name: 'الرياض', agents: 35, tickets: 62 },
-    { name: 'جدة', agents: 28, tickets: 49 },
-    { name: 'الدمام', agents: 17, tickets: 23 },
-    { name: 'مكة', agents: 14, tickets: 18 },
-    { name: 'المدينة', agents: 9, tickets: 4 }
+  // بيانات للرسم البياني للمستخدمين حسب النوع
+  const userRoleData = [
+    { name: t('admins'), value: stats.users.admins },
+    { name: t('managers'), value: stats.users.managers },
+    { name: t('supervisors'), value: stats.users.supervisors },
+    { name: t('agents'), value: stats.users.agents },
   ];
   
-  const ticketTypeData = [
-    { name: t('advance'), value: 45 },
-    { name: t('fewOrders'), value: 30 },
-    { name: t('salary'), value: 65 },
-    { name: t('other'), value: 16 }
+  // بيانات للرسم البياني للمناديب حسب المنطقة
+  const agentsByRegionData = [
+    { name: t('riyadh'), value: stats.agents.byRegion.riyadh },
+    { name: t('jeddah'), value: stats.agents.byRegion.jeddah },
+    { name: t('dammam'), value: stats.agents.byRegion.dammam },
+    { name: t('otherRegions'), value: stats.agents.byRegion.other },
   ];
   
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+  // ألوان للرسم البياني
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#83a6ed'];
 
   return (
     <RequireAuth allowedRoles={['admin']}>
       <PageLayout title={t('dashboard')} role="admin">
-        <Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="overview">{t('overview')}</TabsTrigger>
-            <TabsTrigger value="users">{t('users')}</TabsTrigger>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">{t('welcomeToMehraanAdmin')}</h1>
+          <p className="text-gray-500">{t('adminDashboardDescription')}</p>
+        </div>
+        
+        {/* إحصائيات عامة */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-gray-500">{t('totalUsers')}</p>
+                <h3 className="text-3xl font-bold mt-1">{stats.users.total}</h3>
+              </div>
+              <Users className="h-8 w-8 text-blue-500" />
+            </div>
+            <div className="mt-4 text-sm text-gray-500">
+              <div className="flex justify-between">
+                <span>{t('pendingUsers')}</span>
+                <span className="font-medium text-amber-500">{stats.users.pending}</span>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-gray-500">{t('totalTickets')}</p>
+                <h3 className="text-3xl font-bold mt-1">{stats.tickets.total}</h3>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-yellow-500" />
+            </div>
+            <div className="mt-4 text-sm text-gray-500">
+              <div className="flex justify-between">
+                <span>{t('newTickets')}</span>
+                <span className="font-medium text-blue-500">{stats.tickets.new}</span>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-gray-500">{t('totalAgents')}</p>
+                <h3 className="text-3xl font-bold mt-1">{stats.agents.total}</h3>
+              </div>
+              <UserCheck className="h-8 w-8 text-green-500" />
+            </div>
+            <div className="mt-4 text-sm text-gray-500">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex justify-between">
+                  <span>{t('riyadh')}</span>
+                  <span className="font-medium">{stats.agents.byRegion.riyadh}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{t('jeddah')}</span>
+                  <span className="font-medium">{stats.agents.byRegion.jeddah}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-gray-500">{t('ticketStatus')}</p>
+                <h3 className="text-3xl font-bold mt-1">{stats.tickets.open + stats.tickets.pending}</h3>
+              </div>
+              <Clock className="h-8 w-8 text-purple-500" />
+            </div>
+            <div className="mt-4 text-sm text-gray-500">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex justify-between">
+                  <span>{t('open')}</span>
+                  <span className="font-medium text-orange-500">{stats.tickets.open}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{t('closed')}</span>
+                  <span className="font-medium text-green-500">{stats.tickets.closed}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+        
+        {/* تبويبات للتقارير والإحصائيات */}
+        <Tabs defaultValue="tickets" className="mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="tickets">{t('tickets')}</TabsTrigger>
-            <TabsTrigger value="regions">{t('regions')}</TabsTrigger>
+            <TabsTrigger value="users">{t('users')}</TabsTrigger>
+            <TabsTrigger value="agents">{t('agents')}</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="p-6 shadow-md">
-                <h3 className="text-lg font-semibold mb-2">{t('users')}</h3>
-                <p className="text-3xl font-bold">{userStats.total}</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  {userStats.pending} {t('pending')} • {userStats.approved} {t('approved')} • {userStats.rejected} {t('rejected')}
-                </p>
-              </Card>
-              
-              <Card className="p-6 shadow-md">
-                <h3 className="text-lg font-semibold mb-2">{t('tickets')}</h3>
-                <p className="text-3xl font-bold">{ticketStats.total}</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  {ticketStats.open} {t('open')} • {ticketStats.pending} {t('pending')} • {ticketStats.closed} {t('closed')}
-                </p>
-              </Card>
-              
-              <Card className="p-6 shadow-md">
-                <h3 className="text-lg font-semibold mb-2">{t('agents')}</h3>
-                <p className="text-3xl font-bold">123</p>
-                <p className="text-sm text-gray-500 mt-2">25 {t('active')} • 98 {t('inactive')}</p>
-              </Card>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="p-6 shadow-md">
-                <h3 className="text-lg font-semibold mb-4">{t('ticketTypes')}</h3>
-                <div className="h-64">
+          <TabsContent value="tickets">
+            <Card>
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-4">{t('ticketsByType')}</h3>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={ticketTypeData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="value" fill="#8884d8" name={t('ticketCount')} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="users">
+            <Card>
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-4">{t('usersByRole')}</h3>
+                <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={ticketTypeData}
+                        data={userRoleData}
                         cx="50%"
                         cy="50%"
-                        labelLine={false}
+                        labelLine={true}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                       >
-                        {ticketTypeData.map((entry, index) => (
+                        {userRoleData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
                       <Tooltip />
+                      <Legend />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-              </Card>
-              
-              <Card className="p-6 shadow-md">
-                <h3 className="text-lg font-semibold mb-4">{t('recentActivity')}</h3>
-                <div className="space-y-3">
-                  <div className="border-b pb-2">
-                    <p className="text-sm text-gray-500">22/06/2023 - 14:25</p>
-                    <p>تم إضافة 3 مناديب جدد في منطقة الرياض</p>
-                  </div>
-                  <div className="border-b pb-2">
-                    <p className="text-sm text-gray-500">22/06/2023 - 11:13</p>
-                    <p>تم تغيير حالة 5 تذاكر إلى "مغلقة"</p>
-                  </div>
-                  <div className="border-b pb-2">
-                    <p className="text-sm text-gray-500">21/06/2023 - 09:45</p>
-                    <p>تم إضافة نوع تذكرة جديد "طلب إجازة"</p>
-                  </div>
-                  <div className="pb-2">
-                    <p className="text-sm text-gray-500">20/06/2023 - 16:30</p>
-                    <p>تم قبول 2 من طلبات المستخدمين الجدد</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="users" className="space-y-6">
-            <Card className="p-6 shadow-md">
-              <h3 className="text-lg font-semibold mb-4">{t('userRegistration')}</h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[
-                      { month: 'يناير', count: 5 },
-                      { month: 'فبراير', count: 7 },
-                      { month: 'مارس', count: 3 },
-                      { month: 'أبريل', count: 12 },
-                      { month: 'مايو', count: 8 },
-                      { month: 'يونيو', count: 15 }
-                    ]}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" name={t('users')} fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-            
-            <Card className="p-6 shadow-md">
-              <h3 className="text-lg font-semibold mb-4">{t('usersByRole')}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-                <div className="bg-blue-100 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-blue-800">3</p>
-                  <p className="text-sm text-blue-600">{t('admin')}</p>
-                </div>
-                <div className="bg-green-100 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-green-800">7</p>
-                  <p className="text-sm text-green-600">{t('managers')}</p>
-                </div>
-                <div className="bg-yellow-100 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-yellow-800">12</p>
-                  <p className="text-sm text-yellow-600">{t('supervisors')}</p>
-                </div>
-                <div className="bg-purple-100 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-purple-800">123</p>
-                  <p className="text-sm text-purple-600">{t('agents')}</p>
-                </div>
               </div>
             </Card>
           </TabsContent>
           
-          <TabsContent value="tickets" className="space-y-6">
-            <Card className="p-6 shadow-md">
-              <h3 className="text-lg font-semibold mb-4">{t('ticketStats')}</h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[
-                      { month: 'يناير', open: 25, closed: 40 },
-                      { month: 'فبراير', open: 30, closed: 35 },
-                      { month: 'مارس', open: 15, closed: 20 },
-                      { month: 'أبريل', open: 27, closed: 32 },
-                      { month: 'مايو', open: 18, closed: 22 },
-                      { month: 'يونيو', open: 23, closed: 19 }
-                    ]}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="open" name={t('openTickets')} fill="#FF8042" />
-                    <Bar dataKey="closed" name={t('closedTickets')} fill="#00C49F" />
-                  </BarChart>
-                </ResponsiveContainer>
+          <TabsContent value="agents">
+            <Card>
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-4">{t('agentsByRegion')}</h3>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={agentsByRegionData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={true}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {agentsByRegionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </Card>
-          </TabsContent>
-          
-          <TabsContent value="regions" className="space-y-6">
-            <Card className="p-6 shadow-md">
-              <h3 className="text-lg font-semibold mb-4">{t('regionalDistribution')}</h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={regionalData}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="agents" name={t('agents')} fill="#8884d8" />
-                    <Bar dataKey="tickets" name={t('tickets')} fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {regionalData.map((region) => (
-                <Card key={region.name} className="p-4 shadow-md">
-                  <h3 className="text-lg font-semibold">{region.name}</h3>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <div className="bg-purple-50 p-2 rounded">
-                      <p className="text-xs text-gray-500">{t('agents')}</p>
-                      <p className="text-xl font-semibold">{region.agents}</p>
-                    </div>
-                    <div className="bg-green-50 p-2 rounded">
-                      <p className="text-xs text-gray-500">{t('tickets')}</p>
-                      <p className="text-xl font-semibold">{region.tickets}</p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
           </TabsContent>
         </Tabs>
+        
+        {/* أحدث التذاكر والمستخدمين */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <Card>
+            <div className="p-6">
+              <h3 className="text-xl font-semibold mb-4">{t('latestTickets')}</h3>
+              <div className="space-y-4">
+                {tickets.slice(0, 5).map(ticket => (
+                  <div key={ticket.id} className="flex items-start border-b pb-4">
+                    <div className={`p-2 rounded-full mr-4 ${
+                      ticket.status === 'new' ? 'bg-blue-100 text-blue-600' :
+                      ticket.status === 'open' ? 'bg-yellow-100 text-yellow-600' :
+                      ticket.status === 'closed' ? 'bg-green-100 text-green-600' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {ticket.status === 'new' ? (
+                        <AlertTriangle className="h-5 w-5" />
+                      ) : ticket.status === 'open' ? (
+                        <Clock className="h-5 w-5" />
+                      ) : (
+                        <CheckCircle className="h-5 w-5" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex justify-between">
+                        <h4 className="font-medium">{ticket.ticketId}</h4>
+                        <span className="text-sm text-gray-500">
+                          {new Date(ticket.createdAt).toLocaleDateString('ar-SA')}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-1">{ticket.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+          
+          <Card>
+            <div className="p-6">
+              <h3 className="text-xl font-semibold mb-4">{t('pendingRequests')}</h3>
+              <div className="space-y-4">
+                {stats.users.pending === 0 ? (
+                  <p className="text-center text-gray-500 py-8">{t('noPendingRequests')}</p>
+                ) : (
+                  stats.users.pending > 0 && (
+                    <div className="flex items-start border-b pb-4">
+                      <div className="p-2 rounded-full mr-4 bg-yellow-100 text-yellow-600">
+                        <Clock className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between">
+                          <h4 className="font-medium">{t('newUserRegistrations')}</h4>
+                          <span className="text-sm text-gray-500">
+                            {new Date().toLocaleDateString('ar-SA')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {t('youHavePendingUsers', { count: stats.users.pending })}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          </Card>
+        </div>
       </PageLayout>
     </RequireAuth>
   );
