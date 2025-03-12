@@ -260,7 +260,7 @@ const AdminDashboard = () => {
                       <div className="flex justify-between">
                         <h4 className="font-medium">{ticket.ticketId}</h4>
                         <span className="text-sm text-gray-500">
-                          {new Date(ticket.createdAt).toLocaleDateString('ar-SA')}
+                          {new Date(ticket.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mt-1 line-clamp-1">{ticket.description}</p>
@@ -287,7 +287,7 @@ const AdminDashboard = () => {
                         <div className="flex justify-between">
                           <h4 className="font-medium">{t('newUserRegistrations')}</h4>
                           <span className="text-sm text-gray-500">
-                            {new Date().toLocaleDateString('ar-SA')}
+                            {new Date().toLocaleDateString()}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
