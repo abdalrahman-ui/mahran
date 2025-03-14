@@ -1,6 +1,5 @@
 
-// This file now re-exports all services from the new modular structure
-// It's kept for backward compatibility with existing code
+// Re-export all services
 export * from './userService';
 export * from './ticketService';
 export * from './agentService';
