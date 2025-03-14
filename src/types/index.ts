@@ -38,6 +38,7 @@ export interface Agent {
   name: string;
   idNumber: string; // Saudi ID
   region: string;
+  phone?: string; // Added phone field
   createdAt: Date;
   updatedAt: Date;
   createdBy: string; // Supervisor ID
