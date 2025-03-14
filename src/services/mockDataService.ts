@@ -1,4 +1,3 @@
-
 import { User, UserStatus, TicketType, TicketStatus, Ticket, Agent, UserRole } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -136,7 +135,7 @@ const tickets: Ticket[] = [
 ];
 
 // قائمة المناديب
-const agents: Agent[] = [
+let agents: Agent[] = [
   {
     id: "1",
     name: "أحمد الغامدي",
@@ -264,6 +263,7 @@ export const addAgent = (agentData: Omit<Agent, 'id' | 'createdAt' | 'updatedAt'
     name: agentData.name,
     idNumber: agentData.idNumber,
     region: agentData.region,
+    phone: agentData.phone,
     createdAt: new Date(),
     updatedAt: new Date(),
     createdBy: agentData.createdBy

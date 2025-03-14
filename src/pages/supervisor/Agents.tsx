@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import RequireAuth from "@/components/layout/RequireAuth";
@@ -28,7 +27,8 @@ import {
   DialogHeader, 
   DialogTitle, 
   DialogTrigger, 
-  DialogFooter
+  DialogFooter,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { 
   Select, 
@@ -57,10 +57,8 @@ const SupervisorAgents = () => {
   const [importSuccessCount, setImportSuccessCount] = useState(0);
 
   useEffect(() => {
-    // Apply filters
     let result = agents;
     
-    // Search filter
     if (searchTerm) {
       result = result.filter(agent => 
         agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -69,10 +67,8 @@ const SupervisorAgents = () => {
       );
     }
     
-    // Tab filter
     if (activeTab !== "all") {
       // Additional tab filters could be implemented here
-      // For example, filtering by status, region, etc.
     }
     
     setFilteredAgents(result);
@@ -80,19 +76,23 @@ const SupervisorAgents = () => {
 
   const handleAddAgent = () => {
     if (!newAgentName.trim() || !newAgentIdNumber.trim()) {
-      toast.error(t('pleaseEnterAllRequiredData'));
+      toast.error(t('pleaseEnterAllRequiredData') || "الرجاء إدخال جميع البيانات المطلوبة");
       return;
     }
 
-    // Check if ID already exists
     const idExists = agents.some(agent => agent.idNumber === newAgentIdNumber);
     if (idExists) {
-      toast.error(t('idNumberAlreadyExists'));
+      toast.error(t('idNumberAlreadyExists') || "رقم الهوية موجود بالفعل");
       return;
     }
 
-    if (user) {
-      const newAgent: Omit<Agent, 'id' | 'createdAt' | 'updatedAt'> = {
+    if (!user || !user.id) {
+      toast.error("خطأ في معلومات المستخدم");
+      return;
+    }
+
+    try {
+      const newAgent = {
         name: newAgentName,
         idNumber: newAgentIdNumber,
         region: user.region || 'الرياض',
@@ -101,12 +101,15 @@ const SupervisorAgents = () => {
       };
 
       const addedAgent = addAgent(newAgent);
-      setAgents([...agents, addedAgent]);
+      setAgents(prevAgents => [...prevAgents, addedAgent]);
       setNewAgentName("");
       setNewAgentIdNumber("");
       setNewAgentPhone("");
       setShowAddDialog(false);
-      toast.success(t('agentAddedSuccessfully'));
+      toast.success(t('agentAddedSuccessfully') || "تمت إضافة المندوب بنجاح");
+    } catch (error) {
+      console.error("Error adding agent:", error);
+      toast.error("حدث خطأ أثناء إضافة المندوب");
     }
   };
 
@@ -123,27 +126,28 @@ const SupervisorAgents = () => {
         const worksheet = workbook.Sheets[firstSheetName];
         const data = XLSX.utils.sheet_to_json<any>(worksheet);
 
-        // Validate and process data
         const errors: string[] = [];
         let successCount = 0;
         const newAgents: Agent[] = [];
 
+        if (!user || !user.id) {
+          toast.error("خطأ في معلومات المستخدم");
+          return;
+        }
+
         data.forEach((row, index) => {
-          // Validate required fields
           if (!row.name || !row.idNumber) {
             errors.push(`صف ${index + 1}: اسم المندوب أو رقم الهوية مفقود`);
             return;
           }
 
-          // Check for duplicate ID
           if (agents.some(agent => agent.idNumber === row.idNumber) || 
               newAgents.some(agent => agent.idNumber === row.idNumber)) {
             errors.push(`صف ${index + 1}: رقم الهوية ${row.idNumber} موجود بالفعل`);
             return;
           }
 
-          // Create new agent
-          if (user) {
+          try {
             const newAgent = addAgent({
               name: row.name,
               idNumber: row.idNumber,
@@ -153,51 +157,57 @@ const SupervisorAgents = () => {
             });
             newAgents.push(newAgent);
             successCount++;
+          } catch (error) {
+            errors.push(`صف ${index + 1}: خطأ في إضافة المندوب`);
+            console.error("Error adding agent from Excel:", error);
           }
         });
 
-        // Update state
-        setAgents([...agents, ...newAgents]);
+        if (newAgents.length > 0) {
+          setAgents(prevAgents => [...prevAgents, ...newAgents]);
+        }
         setImportErrors(errors);
         setImportSuccessCount(successCount);
 
-        // Show results
         if (errors.length > 0) {
           toast.error(`تم استيراد ${successCount} مندوب بنجاح، مع ${errors.length} خطأ`);
-        } else {
+        } else if (successCount > 0) {
           toast.success(`تم استيراد ${successCount} مندوب بنجاح`);
+        } else {
+          toast.error("لم يتم استيراد أي مناديب");
         }
 
-        // Reset file input
         e.target.value = '';
       } catch (error) {
         console.error("Error parsing Excel file:", error);
-        toast.error(t('errorParsingExcelFile'));
+        toast.error(t('errorParsingExcelFile') || "خطأ في قراءة ملف الإكسل");
+        e.target.value = '';
       }
     };
     reader.readAsBinaryString(file);
   };
 
   const handleExportToExcel = () => {
-    // Create workbook
-    const workbook = XLSX.utils.book_new();
-    
-    // Convert data to worksheet
-    const worksheet = XLSX.utils.json_to_sheet(agents.map(agent => ({
-      name: agent.name,
-      idNumber: agent.idNumber,
-      region: agent.region,
-      phone: agent.phone || '',
-      createdAt: new Date(agent.createdAt).toLocaleDateString(),
-    })));
-    
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Agents");
-    
-    // Generate Excel file
-    XLSX.writeFile(workbook, "agents.xlsx");
-    
-    toast.success(t('exportedSuccessfully'));
+    try {
+      const workbook = XLSX.utils.book_new();
+      
+      const worksheet = XLSX.utils.json_to_sheet(agents.map(agent => ({
+        name: agent.name,
+        idNumber: agent.idNumber,
+        region: agent.region,
+        phone: agent.phone || '',
+        createdAt: new Date(agent.createdAt).toLocaleDateString(),
+      })));
+      
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Agents");
+      
+      XLSX.writeFile(workbook, "agents.xlsx");
+      
+      toast.success(t('exportedSuccessfully') || "تم التصدير بنجاح");
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      toast.error("حدث خطأ أثناء تصدير البيانات");
+    }
   };
 
   const handleViewDetails = (agent: Agent) => {
@@ -235,6 +245,7 @@ const SupervisorAgents = () => {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{t('addAgent')}</DialogTitle>
+                  <DialogDescription>أدخل بيانات المندوب الجديد</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
@@ -373,12 +384,12 @@ const SupervisorAgents = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Agent Details Dialog */}
         {selectedAgent && (
           <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>{t('agentDetails')}</DialogTitle>
+                <DialogDescription>تفاصيل المندوب</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div>
