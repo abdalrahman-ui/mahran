@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import RequireAuth from "@/components/layout/RequireAuth";
@@ -6,7 +7,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getAgents, addAgent } from "@/services/mockDataService";
+import { 
+  getAgents, 
+  addAgent, 
+  updateAgent, 
+  deleteAgent,
+  searchAgents
+} from "@/services/mockDataService";
 import { Agent } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -19,7 +26,12 @@ import {
   Users, 
   CalendarDays,
   MapPin,
-  Phone
+  Phone,
+  Mail,
+  Trash2,
+  Edit,
+  Check,
+  X
 } from "lucide-react";
 import { 
   Dialog, 
@@ -38,6 +50,17 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import * as XLSX from 'xlsx';
 
 const SupervisorAgents = () => {
@@ -45,44 +68,70 @@ const SupervisorAgents = () => {
   const { user } = useAuth();
   const [agents, setAgents] = useState<Agent[]>(getAgents());
   const [filteredAgents, setFilteredAgents] = useState<Agent[]>(agents);
-  const [newAgentName, setNewAgentName] = useState("");
-  const [newAgentIdNumber, setNewAgentIdNumber] = useState("");
-  const [newAgentPhone, setNewAgentPhone] = useState("");
+  const [newAgent, setNewAgent] = useState({
+    name: "",
+    idNumber: "",
+    phone: "",
+    email: "",
+    region: user?.region || "الرياض"
+  });
+  const [editAgent, setEditAgent] = useState<Agent | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importSuccessCount, setImportSuccessCount] = useState(0);
+  const [showImportErrorDialog, setShowImportErrorDialog] = useState(false);
+  const [regionFilter, setRegionFilter] = useState("");
 
   useEffect(() => {
-    let result = agents;
+    let result = searchAgents(searchTerm);
     
-    if (searchTerm) {
-      result = result.filter(agent => 
-        agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        agent.idNumber.includes(searchTerm) ||
-        agent.region.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    if (regionFilter) {
+      result = result.filter(agent => agent.region === regionFilter);
     }
     
-    if (activeTab !== "all") {
-      // Additional tab filters could be implemented here
+    if (activeTab === "myAgents" && user) {
+      result = result.filter(agent => agent.createdBy === user.id);
     }
     
     setFilteredAgents(result);
-  }, [agents, searchTerm, activeTab]);
+  }, [agents, searchTerm, activeTab, regionFilter, user]);
 
-  const handleAddAgent = () => {
-    if (!newAgentName.trim() || !newAgentIdNumber.trim()) {
+  const validateAgent = (agent: Partial<Agent>) => {
+    if (!agent.name || !agent.idNumber || !agent.region) {
       toast.error(t('pleaseEnterAllRequiredData') || "الرجاء إدخال جميع البيانات المطلوبة");
-      return;
+      return false;
     }
 
-    const idExists = agents.some(agent => agent.idNumber === newAgentIdNumber);
+    const idExists = agents.some(existingAgent => 
+      existingAgent.idNumber === agent.idNumber && 
+      (!editAgent || existingAgent.id !== editAgent.id)
+    );
+    
     if (idExists) {
       toast.error(t('idNumberAlreadyExists') || "رقم الهوية موجود بالفعل");
+      return false;
+    }
+
+    if (agent.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(agent.email)) {
+      toast.error(t('invalidEmail') || "البريد الإلكتروني غير صالح");
+      return false;
+    }
+
+    if (agent.phone && !/^05\d{8}$/.test(agent.phone)) {
+      toast.error(t('invalidPhone') || "رقم الهاتف غير صالح، يجب أن يبدأ بـ 05 ويتكون من 10 أرقام");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleAddAgent = () => {
+    if (!validateAgent(newAgent)) {
       return;
     }
 
@@ -92,25 +141,80 @@ const SupervisorAgents = () => {
     }
 
     try {
-      const newAgent = {
-        name: newAgentName,
-        idNumber: newAgentIdNumber,
-        region: user.region || 'الرياض',
-        createdBy: user.id,
-        phone: newAgentPhone || '',
+      const agentData = {
+        ...newAgent,
+        createdBy: user.id
       };
 
-      const addedAgent = addAgent(newAgent);
+      const addedAgent = addAgent(agentData);
       setAgents(prevAgents => [...prevAgents, addedAgent]);
-      setNewAgentName("");
-      setNewAgentIdNumber("");
-      setNewAgentPhone("");
+      
+      // Reset form
+      setNewAgent({
+        name: "",
+        idNumber: "",
+        phone: "",
+        email: "",
+        region: user.region || "الرياض"
+      });
+      
       setShowAddDialog(false);
       toast.success(t('agentAddedSuccessfully') || "تمت إضافة المندوب بنجاح");
     } catch (error) {
       console.error("Error adding agent:", error);
       toast.error("حدث خطأ أثناء إضافة المندوب");
     }
+  };
+
+  const handleUpdateAgent = () => {
+    if (!editAgent || !validateAgent(editAgent)) {
+      return;
+    }
+
+    if (!user || !user.id) {
+      toast.error("خطأ في معلومات المستخدم");
+      return;
+    }
+
+    try {
+      const updatedAgent = updateAgent(editAgent.id, editAgent, user.id);
+      if (updatedAgent) {
+        setAgents(prevAgents => 
+          prevAgents.map(agent => agent.id === updatedAgent.id ? updatedAgent : agent)
+        );
+        
+        setShowEditDialog(false);
+        toast.success(t('agentUpdatedSuccessfully') || "تم تحديث بيانات المندوب بنجاح");
+      }
+    } catch (error) {
+      console.error("Error updating agent:", error);
+      toast.error("حدث خطأ أثناء تحديث بيانات المندوب");
+    }
+  };
+
+  const handleDeleteAgent = (agentId: string) => {
+    if (!user || !user.id) {
+      toast.error("خطأ في معلومات المستخدم");
+      return;
+    }
+
+    try {
+      const success = deleteAgent(agentId, user.id);
+      if (success) {
+        setAgents(prevAgents => prevAgents.filter(agent => agent.id !== agentId));
+        toast.success(t('agentDeletedSuccessfully') || "تم حذف المندوب بنجاح");
+      } else {
+        toast.error(t('failedToDeleteAgent') || "فشل في حذف المندوب");
+      }
+    } catch (error) {
+      console.error("Error deleting agent:", error);
+      toast.error("حدث خطأ أثناء حذف المندوب");
+    }
+  };
+
+  const handleEditClick = (agent: Agent) => {
+    setEditAgent({...agent});
+    setShowEditDialog(true);
   };
 
   const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,8 +240,8 @@ const SupervisorAgents = () => {
         }
 
         data.forEach((row, index) => {
-          if (!row.name || !row.idNumber) {
-            errors.push(`صف ${index + 1}: اسم المندوب أو رقم الهوية مفقود`);
+          if (!row.name || !row.idNumber || !row.region) {
+            errors.push(`صف ${index + 1}: اسم المندوب أو رقم الهوية أو المنطقة مفقود`);
             return;
           }
 
@@ -147,13 +251,25 @@ const SupervisorAgents = () => {
             return;
           }
 
+          // Validate email and phone
+          if (row.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
+            errors.push(`صف ${index + 1}: البريد الإلكتروني ${row.email} غير صالح`);
+            return;
+          }
+
+          if (row.phone && !/^05\d{8}$/.test(row.phone)) {
+            errors.push(`صف ${index + 1}: رقم الهاتف ${row.phone} غير صالح، يجب أن يبدأ بـ 05 ويتكون من 10 أرقام`);
+            return;
+          }
+
           try {
             const newAgent = addAgent({
               name: row.name,
               idNumber: row.idNumber,
-              region: row.region || user.region || 'الرياض',
+              region: row.region,
               createdBy: user.id,
               phone: row.phone || '',
+              email: row.email || ''
             });
             newAgents.push(newAgent);
             successCount++;
@@ -166,13 +282,18 @@ const SupervisorAgents = () => {
         if (newAgents.length > 0) {
           setAgents(prevAgents => [...prevAgents, ...newAgents]);
         }
+        
         setImportErrors(errors);
         setImportSuccessCount(successCount);
 
         if (errors.length > 0) {
-          toast.error(`تم استيراد ${successCount} مندوب بنجاح، مع ${errors.length} خطأ`);
-        } else if (successCount > 0) {
+          setShowImportErrorDialog(true);
+        }
+
+        if (successCount > 0) {
           toast.success(`تم استيراد ${successCount} مندوب بنجاح`);
+        } else if (errors.length > 0) {
+          toast.error("لم يتم استيراد أي مناديب بسبب وجود أخطاء");
         } else {
           toast.error("لم يتم استيراد أي مناديب");
         }
@@ -191,11 +312,12 @@ const SupervisorAgents = () => {
     try {
       const workbook = XLSX.utils.book_new();
       
-      const worksheet = XLSX.utils.json_to_sheet(agents.map(agent => ({
+      const worksheet = XLSX.utils.json_to_sheet(filteredAgents.map(agent => ({
         name: agent.name,
         idNumber: agent.idNumber,
         region: agent.region,
         phone: agent.phone || '',
+        email: agent.email || '',
         createdAt: new Date(agent.createdAt).toLocaleDateString(),
       })));
       
@@ -215,8 +337,27 @@ const SupervisorAgents = () => {
     setShowDetailDialog(true);
   };
 
+  const downloadExcelTemplate = () => {
+    const template = [
+      {
+        name: "اسم المندوب",
+        idNumber: "رقم الهوية",
+        region: "المنطقة",
+        phone: "رقم الهاتف (اختياري)",
+        email: "البريد الإلكتروني (اختياري)"
+      }
+    ];
+    
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(template);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
+    XLSX.writeFile(workbook, "agents_template.xlsx");
+    
+    toast.success("تم تنزيل قالب الإكسل بنجاح");
+  };
+
   return (
-    <RequireAuth allowedRoles={['supervisor']}>
+    <RequireAuth allowedRoles={['supervisor', 'admin']}>
       <PageLayout title={t('agents')} role="supervisor">
         <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <h2 className="text-xl font-semibold">
@@ -242,7 +383,7 @@ const SupervisorAgents = () => {
                   {t('addAgent')}
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle>{t('addAgent')}</DialogTitle>
                   <DialogDescription>أدخل بيانات المندوب الجديد</DialogDescription>
@@ -252,27 +393,59 @@ const SupervisorAgents = () => {
                     <Label htmlFor="agentName">{t('name')} *</Label>
                     <Input
                       id="agentName"
-                      value={newAgentName}
-                      onChange={(e) => setNewAgentName(e.target.value)}
+                      value={newAgent.name}
+                      onChange={(e) => setNewAgent({...newAgent, name: e.target.value})}
                       placeholder={t('name')}
+                      required
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="agentIdNumber">{t('idNumber')} *</Label>
                     <Input
                       id="agentIdNumber"
-                      value={newAgentIdNumber}
-                      onChange={(e) => setNewAgentIdNumber(e.target.value)}
+                      value={newAgent.idNumber}
+                      onChange={(e) => setNewAgent({...newAgent, idNumber: e.target.value})}
                       placeholder={t('idNumber')}
+                      required
                     />
+                    <p className="text-xs text-gray-500">يجب أن يكون رقم الهوية فريدًا.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="agentRegion">{t('region')} *</Label>
+                    <Select 
+                      value={newAgent.region} 
+                      onValueChange={(value) => setNewAgent({...newAgent, region: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('region')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="الرياض">الرياض</SelectItem>
+                        <SelectItem value="جدة">جدة</SelectItem>
+                        <SelectItem value="الدمام">الدمام</SelectItem>
+                        <SelectItem value="مكة">مكة</SelectItem>
+                        <SelectItem value="المدينة">المدينة</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="agentPhone">{t('phone')}</Label>
                     <Input
                       id="agentPhone"
-                      value={newAgentPhone}
-                      onChange={(e) => setNewAgentPhone(e.target.value)}
-                      placeholder={t('phone')}
+                      value={newAgent.phone}
+                      onChange={(e) => setNewAgent({...newAgent, phone: e.target.value})}
+                      placeholder="05xxxxxxxx"
+                    />
+                    <p className="text-xs text-gray-500">يجب أن يبدأ برقم 05 ويتكون من 10 أرقام.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="agentEmail">{t('email')}</Label>
+                    <Input
+                      id="agentEmail"
+                      type="email"
+                      value={newAgent.email}
+                      onChange={(e) => setNewAgent({...newAgent, email: e.target.value})}
+                      placeholder="example@example.com"
                     />
                   </div>
                 </div>
@@ -287,34 +460,137 @@ const SupervisorAgents = () => {
               </DialogContent>
             </Dialog>
             
-            <label htmlFor="excel-upload">
-              <Button variant="outline" className="cursor-pointer" asChild>
-                <div>
-                  <Upload className="h-4 w-4 mr-2" />
-                  {t('uploadExcel')}
-                </div>
-              </Button>
-            </label>
-            <input
-              id="excel-upload"
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleImportExcel}
-              className="hidden"
-            />
+            <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>{t('editAgent')}</DialogTitle>
+                  <DialogDescription>تعديل بيانات المندوب</DialogDescription>
+                </DialogHeader>
+                {editAgent && (
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="editAgentName">{t('name')} *</Label>
+                      <Input
+                        id="editAgentName"
+                        value={editAgent.name}
+                        onChange={(e) => setEditAgent({...editAgent, name: e.target.value})}
+                        placeholder={t('name')}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="editAgentIdNumber">{t('idNumber')} *</Label>
+                      <Input
+                        id="editAgentIdNumber"
+                        value={editAgent.idNumber}
+                        onChange={(e) => setEditAgent({...editAgent, idNumber: e.target.value})}
+                        placeholder={t('idNumber')}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="editAgentRegion">{t('region')} *</Label>
+                      <Select 
+                        value={editAgent.region} 
+                        onValueChange={(value) => setEditAgent({...editAgent, region: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('region')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="الرياض">الرياض</SelectItem>
+                          <SelectItem value="جدة">جدة</SelectItem>
+                          <SelectItem value="الدمام">الدمام</SelectItem>
+                          <SelectItem value="مكة">مكة</SelectItem>
+                          <SelectItem value="المدينة">المدينة</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="editAgentPhone">{t('phone')}</Label>
+                      <Input
+                        id="editAgentPhone"
+                        value={editAgent.phone || ''}
+                        onChange={(e) => setEditAgent({...editAgent, phone: e.target.value})}
+                        placeholder="05xxxxxxxx"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="editAgentEmail">{t('email')}</Label>
+                      <Input
+                        id="editAgentEmail"
+                        type="email"
+                        value={editAgent.email || ''}
+                        onChange={(e) => setEditAgent({...editAgent, email: e.target.value})}
+                        placeholder="example@example.com"
+                      />
+                    </div>
+                  </div>
+                )}
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                    {t('cancel')}
+                  </Button>
+                  <Button onClick={handleUpdateAgent}>
+                    {t('save')}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             
-            <Button variant="outline" onClick={handleExportToExcel}>
-              <Download className="h-4 w-4 mr-2" />
-              {t('exportExcel')}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={downloadExcelTemplate}>
+                <Download className="h-4 w-4 mr-2" />
+                {t('downloadTemplate')}
+              </Button>
+              
+              <label htmlFor="excel-upload" className="cursor-pointer">
+                <Button variant="outline" className="cursor-pointer" asChild>
+                  <div>
+                    <Upload className="h-4 w-4 mr-2" />
+                    {t('uploadExcel')}
+                  </div>
+                </Button>
+              </label>
+              <input
+                id="excel-upload"
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleImportExcel}
+                className="hidden"
+              />
+              
+              <Button variant="outline" onClick={handleExportToExcel}>
+                <Download className="h-4 w-4 mr-2" />
+                {t('exportExcel')}
+              </Button>
+            </div>
           </div>
         </div>
 
+        <Card className="mb-6 p-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <Select value={regionFilter} onValueChange={setRegionFilter}>
+              <SelectTrigger className="w-[150px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder={t('region')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">{t('allRegions')}</SelectItem>
+                <SelectItem value="الرياض">الرياض</SelectItem>
+                <SelectItem value="جدة">جدة</SelectItem>
+                <SelectItem value="الدمام">الدمام</SelectItem>
+                <SelectItem value="مكة">مكة</SelectItem>
+                <SelectItem value="المدينة">المدينة</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </Card>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 w-full max-w-md mb-4">
+          <TabsList className="grid grid-cols-2 w-full max-w-md mb-4">
             <TabsTrigger value="all">{t('allAgents')}</TabsTrigger>
-            <TabsTrigger value="active">{t('activeAgents')}</TabsTrigger>
-            <TabsTrigger value="inactive">{t('inactiveAgents')}</TabsTrigger>
+            <TabsTrigger value="myAgents">{t('myAgents')}</TabsTrigger>
           </TabsList>
           
           <TabsContent value={activeTab}>
@@ -326,7 +602,7 @@ const SupervisorAgents = () => {
                       <th className="px-4 py-2 text-left">{t('name')}</th>
                       <th className="px-4 py-2 text-left">{t('idNumber')}</th>
                       <th className="px-4 py-2 text-left">{t('region')}</th>
-                      <th className="px-4 py-2 text-left">{t('phone')}</th>
+                      <th className="px-4 py-2 text-left">{t('contact')}</th>
                       <th className="px-4 py-2 text-left">{t('createdAt')}</th>
                       <th className="px-4 py-2 text-right">{t('actions')}</th>
                     </tr>
@@ -344,14 +620,21 @@ const SupervisorAgents = () => {
                             </div>
                           </td>
                           <td className="border px-4 py-2">
-                            {agent.phone ? (
-                              <div className="flex items-center">
-                                <Phone className="h-4 w-4 mr-1 text-gray-500" />
-                                {agent.phone}
-                              </div>
-                            ) : (
-                              '-'
-                            )}
+                            <div className="flex flex-col">
+                              {agent.phone && (
+                                <div className="flex items-center">
+                                  <Phone className="h-4 w-4 mr-1 text-gray-500" />
+                                  {agent.phone}
+                                </div>
+                              )}
+                              {agent.email && (
+                                <div className="flex items-center">
+                                  <Mail className="h-4 w-4 mr-1 text-gray-500" />
+                                  {agent.email}
+                                </div>
+                              )}
+                              {!agent.phone && !agent.email && "-"}
+                            </div>
                           </td>
                           <td className="border px-4 py-2">
                             <div className="flex items-center">
@@ -360,13 +643,47 @@ const SupervisorAgents = () => {
                             </div>
                           </td>
                           <td className="border px-4 py-2 text-right">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleViewDetails(agent)}
-                            >
-                              {t('viewDetails')}
-                            </Button>
+                            <div className="flex justify-end gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleViewDetails(agent)}
+                              >
+                                {t('view')}
+                              </Button>
+                              
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleEditClick(agent)}
+                              >
+                                <Edit className="h-4 w-4 text-blue-500" />
+                              </Button>
+                              
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      هل أنت متأكد من حذف المندوب {agent.name}؟
+                                      <br />
+                                      لا يمكن التراجع عن هذا الإجراء.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                                    <AlertDialogAction className="bg-red-500 hover:bg-red-600" onClick={() => handleDeleteAgent(agent.id)}>
+                                      حذف
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -386,55 +703,120 @@ const SupervisorAgents = () => {
 
         {selectedAgent && (
           <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>{t('agentDetails')}</DialogTitle>
                 <DialogDescription>تفاصيل المندوب</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">{t('name')}</p>
-                  <p className="text-lg">{selectedAgent.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">{t('idNumber')}</p>
-                  <p className="text-lg">{selectedAgent.idNumber}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">{t('region')}</p>
-                  <div className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-2 text-primary" />
-                    <p className="text-lg">{selectedAgent.region}</p>
+                <div className="flex items-center gap-4">
+                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Users className="h-8 w-8 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold">{selectedAgent.name}</h3>
+                    <p className="text-sm text-gray-500">{selectedAgent.region}</p>
                   </div>
                 </div>
-                {selectedAgent.phone && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">{t('phone')}</p>
-                    <div className="flex items-center">
-                      <Phone className="h-4 w-4 mr-2 text-primary" />
-                      <p className="text-lg">{selectedAgent.phone}</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-500">{t('idNumber')}</Label>
+                    <div className="font-medium">{selectedAgent.idNumber}</div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-500">{t('region')}</Label>
+                    <div className="font-medium flex items-center">
+                      <MapPin className="h-4 w-4 mr-2 text-primary" />
+                      {selectedAgent.region}
+                    </div>
+                  </div>
+                  
+                  {selectedAgent.phone && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-500">{t('phone')}</Label>
+                      <div className="font-medium flex items-center">
+                        <Phone className="h-4 w-4 mr-2 text-primary" />
+                        {selectedAgent.phone}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {selectedAgent.email && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-500">{t('email')}</Label>
+                      <div className="font-medium flex items-center">
+                        <Mail className="h-4 w-4 mr-2 text-primary" />
+                        {selectedAgent.email}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-500">{t('createdAt')}</Label>
+                    <div className="font-medium flex items-center">
+                      <CalendarDays className="h-4 w-4 mr-2 text-primary" />
+                      {new Date(selectedAgent.createdAt).toLocaleDateString('ar-SA', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-500">{t('createdBy')}</Label>
+                    <div className="font-medium">
+                      {findUserById(selectedAgent.createdBy) ? 
+                        `${findUserById(selectedAgent.createdBy)?.firstName} ${findUserById(selectedAgent.createdBy)?.lastName}` :
+                        selectedAgent.createdBy}
+                    </div>
+                  </div>
+                </div>
+                
+                {selectedAgent.lastModifiedAt && (
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="text-sm text-gray-500">
+                      آخر تحديث بواسطة {selectedAgent.lastModifiedBy ? findUserById(selectedAgent.lastModifiedBy)?.firstName : "غير معروف"} بتاريخ {new Date(selectedAgent.lastModifiedAt).toLocaleDateString()}
                     </div>
                   </div>
                 )}
-                <div>
-                  <p className="text-sm font-medium text-gray-500">{t('createdAt')}</p>
-                  <div className="flex items-center">
-                    <CalendarDays className="h-4 w-4 mr-2 text-primary" />
-                    <p className="text-lg">{new Date(selectedAgent.createdAt).toLocaleDateString('ar-SA', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">{t('createdBy')}</p>
-                  <p className="text-lg">{selectedAgent.createdBy}</p>
-                </div>
               </div>
             </DialogContent>
           </Dialog>
         )}
+
+        <Dialog open={showImportErrorDialog} onOpenChange={setShowImportErrorDialog}>
+          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>نتيجة استيراد الملف</DialogTitle>
+              <DialogDescription>
+                تم استيراد {importSuccessCount} مندوب بنجاح، مع {importErrors.length} خطأ
+              </DialogDescription>
+            </DialogHeader>
+            {importErrors.length > 0 && (
+              <div className="space-y-4 py-4">
+                <h4 className="font-medium text-red-500">الأخطاء:</h4>
+                <div className="bg-red-50 p-4 rounded-md max-h-60 overflow-y-auto">
+                  <ul className="list-disc pl-5 space-y-2">
+                    {importErrors.map((error, index) => (
+                      <li key={index} className="text-red-700">{error}</li>
+                    ))}
+                  </ul>
+                </div>
+                <p className="text-sm text-gray-500">
+                  يرجى تصحيح الأخطاء في ملف الإكسل وإعادة المحاولة.
+                </p>
+              </div>
+            )}
+            <DialogFooter>
+              <Button onClick={() => setShowImportErrorDialog(false)}>
+                إغلاق
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </PageLayout>
     </RequireAuth>
   );
