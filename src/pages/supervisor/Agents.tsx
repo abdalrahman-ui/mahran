@@ -12,7 +12,8 @@ import {
   addAgent, 
   updateAgent, 
   deleteAgent,
-  searchAgents
+  searchAgents,
+  findUserById // Import the missing function
 } from "@/services/mockDataService";
 import { Agent } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";

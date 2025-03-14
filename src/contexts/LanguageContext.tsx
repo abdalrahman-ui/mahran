@@ -4,7 +4,9 @@ import { translations, Language, TranslationKey } from '@/translations';
 
 interface LanguageContextType {
   language: Language;
+  currentLanguage: Language; // Add this property
   setLanguage: (lang: Language) => void;
+  toggleLanguage: () => void; // Add this function
   t: (key: string, params?: Record<string, any>) => string;
 }
 
@@ -12,6 +14,11 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('ar');
+
+  // Toggle between Arabic and English
+  const toggleLanguage = () => {
+    setLanguage(prev => prev === 'ar' ? 'en' : 'ar');
+  };
 
   // Translation function
   const t = (key: string, params?: Record<string, any>): string => {
@@ -31,7 +38,13 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ 
+      language, 
+      currentLanguage: language, // Provide currentLanguage as an alias for language
+      setLanguage, 
+      toggleLanguage,
+      t 
+    }}>
       {children}
     </LanguageContext.Provider>
   );

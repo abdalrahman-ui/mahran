@@ -1,4 +1,3 @@
-
 import { User, UserStatus, TicketType, TicketStatus, Ticket, Agent, UserRole, ActivityLog, Notification, TicketComment } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -224,6 +223,11 @@ export const getUsers = (): User[] => {
   return [...users];
 };
 
+// دالة البحث عن مستخدم
+export const findUserById = (userId: string): User | undefined => {
+  return users.find(user => user.id === userId);
+};
+
 // دالة تحديث حالة المستخدم
 export const updateUserStatus = (userId: string, status: UserStatus, updatedById?: string): User | null => {
   const userIndex = users.findIndex(user => user.id === userId);
@@ -342,19 +346,6 @@ export const deleteUser = (userId: string, deletedById?: string): boolean => {
   }
   
   return true;
-};
-
-// دالة البحث عن مستخدم
-export const findUserById = (userId: string): User | undefined => {
-  return users.find(user => user.id === userId);
-};
-
-// دالة البحث عن مستخدمين حسب المنطقة أو الدور
-export const findUsersByRoleOrRegion = (role?: UserRole, region?: string): User[] => {
-  return users.filter(user => 
-    (!role || user.role === role) && 
-    (!region || user.region === region)
-  );
 };
 
 // دالة جلب أنواع التذاكر
@@ -813,7 +804,7 @@ export const generateExcelReport = (data: any[], reportType: string) => {
 
 // دالة لتوليد تقرير PDF
 export const generatePDFReport = (data: any[], reportType: string) => {
-  // في التطبيق الحقيقي، هذه الدالة ستقوم بتوليد ملف PDF
+  // في التطبي�� الحقيقي، هذه الدالة ستقوم بتوليد ملف PDF
   // ولكن هنا سنعيد البيانات فقط كتمثيل للعملية
   return {
     reportType,

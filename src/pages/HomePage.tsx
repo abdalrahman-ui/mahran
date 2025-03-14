@@ -19,7 +19,7 @@ const HomePage = () => {
 
   const handleStaffLogin = async (username: string, password: string) => {
     try {
-      await login(username, password);
+      const user = await login(username, password);
       const state = location.state as { returnUrl?: string };
       const returnUrl = state?.returnUrl;
 
@@ -27,7 +27,6 @@ const HomePage = () => {
       if (returnUrl) {
         navigate(returnUrl);
       } else {
-        const user = await login(username, password);
         if (user.role === "admin") {
           navigate("/admin/dashboard");
         } else if (user.role === "manager") {

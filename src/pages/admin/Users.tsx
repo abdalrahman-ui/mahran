@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import RequireAuth from "@/components/layout/RequireAuth";
@@ -50,10 +49,7 @@ const AdminUsers = () => {
     try {
       addUser({
         ...newUser,
-        id: Date.now().toString(),
         status: 'pending',
-        createdAt: new Date(),
-        updatedAt: new Date(),
       });
       
       setUsers(getUsers());
@@ -101,7 +97,6 @@ const AdminUsers = () => {
     }
   };
   
-  // تصفية المستخدمين استنادًا إلى معايير البحث والفلترة
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
       searchTerm === "" || 
