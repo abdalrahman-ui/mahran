@@ -45,7 +45,7 @@ const AgentLinks = [
   { href: "/agent/new-ticket", label: "newTicket", icon: MessageSquare },
 ];
 
-// Add interface to define props for Sidebar component
+// Define props interface for Sidebar component
 interface SidebarProps {
   role: UserRole;
 }
