@@ -24,7 +24,7 @@ const PageLayout = ({ children, title, role }: PageLayoutProps) => {
 
   return (
     <div className={`min-h-screen bg-gray-50 ${isRtl ? 'rtl' : 'ltr'}`}>
-      {role && <Sidebar role={role} />}
+      {role && <Sidebar role={role as UserRole} />}
       
       <div className={role ? "lg:ml-64 p-6" : "p-6"}>
         <header className="mb-6 flex justify-between items-center">

@@ -110,7 +110,7 @@ const enTranslations = {
   resolve: 'Resolve',
   viewNotes: 'View Notes',
   resolutionNotes: 'Resolution Notes',
-  noTicketsFound: 'No tickets found',
+  noResults: 'No tickets found',
   resolveTicket: 'Resolve Ticket',
   addResolutionNote: 'Add a note about how this ticket was resolved',
   resolutionDetails: 'Resolution details',
