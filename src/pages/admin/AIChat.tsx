@@ -9,7 +9,7 @@ const AIChat = () => {
 
   return (
     <RequireAuth allowedRoles={["admin", "manager"]}>
-      <PageLayout title={t("aiAssistant")}>
+      <PageLayout title={t("aiAssistant")} role="admin">
         <div className="container mx-auto py-6">
           <h1 className="text-2xl font-bold mb-6">{t("aiAssistant")}</h1>
           <p className="text-muted-foreground mb-6">

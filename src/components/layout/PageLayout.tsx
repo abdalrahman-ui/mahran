@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 interface PageLayoutProps {
   children: ReactNode;
   title: string;
-  role: UserRole;
+  role?: UserRole; // Make role optional with '?'
 }
 
 const PageLayout = ({ children, title, role }: PageLayoutProps) => {
@@ -24,9 +24,9 @@ const PageLayout = ({ children, title, role }: PageLayoutProps) => {
 
   return (
     <div className={`min-h-screen bg-gray-50 ${isRtl ? 'rtl' : 'ltr'}`}>
-      <Sidebar role={role} />
+      {role && <Sidebar role={role} />}
       
-      <div className="lg:ml-64 p-6">
+      <div className={role ? "lg:ml-64 p-6" : "p-6"}>
         <header className="mb-6 flex justify-between items-center">
           <h1 className="text-2xl font-bold">{title}</h1>
           <Button 
