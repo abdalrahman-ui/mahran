@@ -84,7 +84,10 @@ const enTranslations = {
   language: 'Language',
   back: 'Back',
   name: 'Name',
-  key: 'Key'
+  key: 'Key',
+  aiAssistant: 'AI Assistant',
+  aiAssistantDescription: 'Ask AI assistant for help with system tasks, data, or any other inquiries.',
+  typeYourMessage: 'Type your message here...'
 };
 
 export default enTranslations;
