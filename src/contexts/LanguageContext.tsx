@@ -1,23 +1,53 @@
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { translations, Language, TranslationKey } from '@/translations';
 
 interface LanguageContextType {
   language: Language;
-  currentLanguage: Language; // Add this property
+  currentLanguage: Language;
   setLanguage: (lang: Language) => void;
-  toggleLanguage: () => void; // Add this function
+  toggleLanguage: () => void;
   t: (key: string, params?: Record<string, any>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+// Get user's preferred language from browser or localStorage
+const getUserPreferredLanguage = (): Language => {
+  const savedLang = localStorage.getItem('preferred-language') as Language | null;
+  if (savedLang && Object.keys(translations).includes(savedLang)) {
+    return savedLang;
+  }
+  
+  // Try to detect from browser
+  const browserLang = navigator.language.split('-')[0];
+  if (browserLang === 'ar') return 'ar';
+  if (browserLang === 'en') return 'en';
+  if (browserLang === 'hi') return 'hi';
+  if (browserLang === 'ur') return 'ur';
+  
+  // Default to Arabic
+  return 'ar';
+};
+
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('ar');
+  const [language, setLanguageState] = useState<Language>(getUserPreferredLanguage());
+
+  // Save language preference to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('preferred-language', language);
+    // Set document direction based on language
+    document.documentElement.dir = language === 'ar' || language === 'ur' ? 'rtl' : 'ltr';
+  }, [language]);
 
   // Toggle between Arabic and English
   const toggleLanguage = () => {
-    setLanguage(prev => prev === 'ar' ? 'en' : 'ar');
+    setLanguageState(prev => prev === 'ar' ? 'en' : 'ar');
+  };
+  
+  // Set language explicitly
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
   };
 
   // Translation function
@@ -40,7 +70,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   return (
     <LanguageContext.Provider value={{ 
       language, 
-      currentLanguage: language, // Provide currentLanguage as an alias for language
+      currentLanguage: language,
       setLanguage, 
       toggleLanguage,
       t 

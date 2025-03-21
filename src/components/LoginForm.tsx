@@ -1,27 +1,23 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Loader2 } from "lucide-react";
 
 interface LoginFormProps {
-  onSubmit: (username: string, password: string) => void;
+  onSubmit: () => void;
   title: string;
   isLoading?: boolean;
   error?: string | null;
 }
 
 const LoginForm = ({ onSubmit, title, isLoading = false, error = null }: LoginFormProps) => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const { t } = useLanguage();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(username, password);
+    onSubmit();
   };
 
   return (
@@ -29,28 +25,6 @@ const LoginForm = ({ onSubmit, title, isLoading = false, error = null }: LoginFo
       <h2 className="text-2xl font-bold mb-6 text-center">{title}</h2>
       {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="username">{t('username')}</Label>
-          <Input
-            id="username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            disabled={isLoading}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">{t('password')}</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={isLoading}
-          />
-        </div>
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? (
             <>

@@ -1,6 +1,12 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { login as loginService, logout as logoutService, agentLogin as agentLoginService, getAuthState, getUser } from '@/services/authService';
+import { 
+  login as loginService, 
+  logout as logoutService, 
+  agentLogin as agentLoginService, 
+  getAuthState, 
+  getUser 
+} from '@/services/authService';
 import { User } from '@/types';
 
 interface AuthContextType {
@@ -8,8 +14,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (username: string, password: string) => Promise<User>; // Update return type
-  agentLogin: (region: string, idNumber: string) => Promise<void>;
+  login: () => Promise<User>; 
+  agentLogin: (region: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -30,33 +36,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  const handleLogin = async (username: string, password: string): Promise<User> => {
+  const handleLogin = async (): Promise<User> => {
     setIsLoading(true);
     setError(null);
     try {
-      const user = await loginService(username, password);
+      const user = await loginService();
       setUser(user);
       setIsAuthenticated(true);
-      return user; // Return the user object
+      return user;
     } catch (err) {
-      setError('فشل تسجيل الدخول. يرجى التحقق من بيانات الاعتماد الخاصة بك.');
+      setError('فشل تسجيل الدخول');
       console.error(err);
-      throw err; // Re-throw the error
+      throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAgentLogin = async (region: string, idNumber: string) => {
+  const handleAgentLogin = async (region: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      await agentLoginService(region, idNumber);
+      await agentLoginService(region);
       const currentUser = getUser();
       setUser(currentUser);
       setIsAuthenticated(true);
     } catch (err) {
-      setError('فشل تسجيل الدخول. يرجى التحقق من رمز المنطقة ورقم الهوية.');
+      setError('فشل تسجيل الدخول. يرجى التحقق من المنطقة.');
       console.error(err);
       throw err;
     } finally {

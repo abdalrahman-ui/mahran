@@ -8,23 +8,20 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   token: string | null;
-  loginAttempts: Record<string, number>; // Track failed login attempts
 }
 
-// Initial auth state - reset all stored data
+// Initial auth state
 let authState: AuthState = {
   user: null,
   isAuthenticated: false,
-  token: null,
-  loginAttempts: {}
+  token: null
 };
 
-// Reset all mock users with new empty passwords
+// Mock users data
 const mockUsers = {
   admin: {
     id: uuidv4(),
     username: 'admin',
-    password: 'Admin@123', // Strong password for demo
     firstName: 'محمد',
     lastName: 'أحمد',
     role: 'admin' as UserRole,
@@ -36,7 +33,6 @@ const mockUsers = {
   manager: {
     id: uuidv4(),
     username: 'manager',
-    password: 'Manager@123', // Strong password for demo
     firstName: 'أحمد',
     lastName: 'محمود',
     role: 'manager' as UserRole,
@@ -48,7 +44,6 @@ const mockUsers = {
   supervisor: {
     id: uuidv4(),
     username: 'supervisor',
-    password: 'Supervisor@123', // Strong password for demo
     firstName: 'خالد',
     lastName: 'عبدالله',
     role: 'supervisor' as UserRole,
@@ -60,106 +55,43 @@ const mockUsers = {
   }
 };
 
-// Reset region passwords for agents
-const regionPasswords: Record<string, string> = {
-  'الرياض': 'Riyadh@123',
-  'جدة': 'Jeddah@123',
-  'الدمام': 'Dammam@123'
-};
-
-// Reset agent IDs for demo purposes
-const validAgentIds = ['1234567890', '0987654321', '5678901234'];
-
-export const login = (username: string, password: string): Promise<User> => {
-  return new Promise((resolve, reject) => {
-    // Check if there are too many failed login attempts for this username
-    if (authState.loginAttempts[username] && authState.loginAttempts[username] >= 3) {
-      toast.error('تم تجاوز الحد الأقصى لمحاولات تسجيل الدخول. يرجى المحاولة لاحقًا');
-      reject(new Error('Too many login attempts'));
-      return;
-    }
-
+// For demo purposes, login always returns the admin user
+export const login = (): Promise<User> => {
+  return new Promise((resolve) => {
     setTimeout(() => {
-      let user = null;
+      const adminUser = { ...mockUsers.admin };
+      
+      // Set auth state
+      authState = {
+        user: adminUser,
+        isAuthenticated: true,
+        token: uuidv4()
+      };
 
-      // Check admin
-      if (username === mockUsers.admin.username && password === mockUsers.admin.password) {
-        user = { ...mockUsers.admin };
-      }
-      // Check manager
-      else if (username === mockUsers.manager.username && password === mockUsers.manager.password) {
-        user = { ...mockUsers.manager };
-      }
-      // Check supervisor
-      else if (username === mockUsers.supervisor.username && password === mockUsers.supervisor.password) {
-        user = { ...mockUsers.supervisor };
-      }
+      // Log successful login
+      addActivityLog({
+        userId: adminUser.id,
+        userRole: adminUser.role,
+        actionType: 'login',
+        entityType: 'user',
+        entityId: adminUser.id,
+        details: 'تسجيل دخول ناجح',
+        createdAt: new Date()
+      });
 
-      if (user) {
-        // Reset login attempts on successful login
-        if (authState.loginAttempts[username]) {
-          delete authState.loginAttempts[username];
-        }
-
-        // Remove password from user object
-        const { password, ...userWithoutPassword } = user;
-        
-        // Set auth state
-        authState = {
-          user: userWithoutPassword,
-          isAuthenticated: true,
-          token: uuidv4(),
-          loginAttempts: { ...authState.loginAttempts }
-        };
-
-        // Log successful login
-        addActivityLog({
-          userId: userWithoutPassword.id,
-          userRole: userWithoutPassword.role,
-          actionType: 'login',
-          entityType: 'user',
-          entityId: userWithoutPassword.id,
-          details: 'تسجيل دخول ناجح',
-          createdAt: new Date()
-        });
-
-        toast.success('تم تسجيل الدخول بنجاح');
-        resolve(userWithoutPassword);
-      } else {
-        // Increment failed login attempts
-        authState.loginAttempts[username] = (authState.loginAttempts[username] || 0) + 1;
-        
-        // Log failed login
-        addActivityLog({
-          userId: 'unknown',
-          userRole: 'unknown' as UserRole,
-          actionType: 'login',
-          entityType: 'user',
-          entityId: username,
-          details: 'محاولة تسجيل دخول فاشلة',
-          createdAt: new Date()
-        });
-
-        let errorMessage = 'فشل تسجيل الدخول. يرجى التحقق من بيانات الاعتماد الخاصة بك.';
-        if (authState.loginAttempts[username] >= 3) {
-          errorMessage = 'تم تجاوز الحد الأقصى لمحاولات تسجيل الدخول. يرجى المحاولة لاحقًا';
-        }
-
-        toast.error(errorMessage);
-        reject(new Error('Invalid credentials'));
-      }
+      toast.success('تم تسجيل الدخول بنجاح');
+      resolve(adminUser);
     }, 500);
   });
 };
 
-export const agentLogin = (region: string, idNumber: string): Promise<boolean> => {
+export const agentLogin = (region: string): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      // Check if region password exists and idNumber is valid
-      if (regionPasswords[region] && validAgentIds.includes(idNumber)) {
+      if (region) {
         const agent = {
           id: uuidv4(),
-          username: `agent_${idNumber}`,
+          username: `agent_${region}`,
           firstName: 'مندوب',
           lastName: region,
           role: 'agent' as UserRole,
@@ -172,8 +104,7 @@ export const agentLogin = (region: string, idNumber: string): Promise<boolean> =
         authState = {
           user: agent,
           isAuthenticated: true,
-          token: uuidv4(),
-          loginAttempts: { ...authState.loginAttempts }
+          token: uuidv4()
         };
 
         // Log successful login
@@ -196,13 +127,13 @@ export const agentLogin = (region: string, idNumber: string): Promise<boolean> =
           userRole: 'unknown' as UserRole,
           actionType: 'login',
           entityType: 'user',
-          entityId: `region:${region}-id:${idNumber}`,
+          entityId: `region:${region}`,
           details: 'محاولة تسجيل دخول مندوب فاشلة',
           createdAt: new Date()
         });
 
-        toast.error('فشل تسجيل الدخول. يرجى التحقق من رمز المنطقة ورقم الهوية.');
-        reject(new Error('Invalid agent credentials'));
+        toast.error('فشل تسجيل الدخول. يرجى التحقق من المنطقة.');
+        reject(new Error('Invalid agent region'));
       }
     }, 500);
   });
@@ -225,17 +156,14 @@ export const logout = (): void => {
   authState = {
     user: null,
     isAuthenticated: false,
-    token: null,
-    loginAttempts: { ...authState.loginAttempts }
+    token: null
   };
   
   toast.success('تم تسجيل الخروج بنجاح');
 };
 
-export const getAuthState = (): Omit<AuthState, 'loginAttempts'> => {
-  // Don't expose login attempts to clients
-  const { loginAttempts, ...safeAuthState } = authState;
-  return safeAuthState;
+export const getAuthState = (): AuthState => {
+  return { ...authState };
 };
 
 export const isAuthenticated = (): boolean => {
@@ -248,40 +176,4 @@ export const getUser = (): User | null => {
 
 export const getToken = (): string | null => {
   return authState.token;
-};
-
-// Password validation for security
-export const isStrongPassword = (password: string): boolean => {
-  // Check for at least 8 characters, uppercase, lowercase, number, and special character
-  const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-  return strongPasswordRegex.test(password);
-};
-
-export const resetPassword = (userId: string, newPassword: string): Promise<boolean> => {
-  return new Promise((resolve, reject) => {
-    if (!isStrongPassword(newPassword)) {
-      toast.error('كلمة المرور ضعيفة. يجب أن تحتوي على حروف كبيرة وصغيرة وأرقام ورموز');
-      reject(new Error('Weak password'));
-      return;
-    }
-
-    // In a real app, this would update the user's password in the database
-    setTimeout(() => {
-      // Log password reset activity
-      if (authState.user) {
-        addActivityLog({
-          userId: authState.user.id,
-          userRole: authState.user.role,
-          actionType: 'update',
-          entityType: 'user',
-          entityId: userId,
-          details: 'تم إعادة تعيين كلمة المرور',
-          createdAt: new Date()
-        });
-      }
-
-      toast.success('تم إعادة تعيين كلمة المرور بنجاح');
-      resolve(true);
-    }, 500);
-  });
 };

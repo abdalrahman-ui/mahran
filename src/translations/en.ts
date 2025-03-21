@@ -1,11 +1,14 @@
 
 const enTranslations = {
   welcome: 'Welcome to Mihran Logistics Services',
+  welcomeMessage: 'Mihran Logistics Services Ticket System - Beta Version',
   admin: 'Admin',
   managers: 'Managers',
   supervisors: 'Supervisors',
   agents: 'Agents',
   login: 'Login',
+  loginToSystem: 'Login to System',
+  staff: 'Staff',
   username: 'Username',
   password: 'Password',
   submit: 'Submit',
@@ -79,7 +82,9 @@ const enTranslations = {
   tickets: 'Tickets',
   pendingTickets: 'Pending Tickets',
   language: 'Language',
-  back: 'Back'
+  back: 'Back',
+  name: 'Name',
+  key: 'Key'
 };
 
 export default enTranslations;

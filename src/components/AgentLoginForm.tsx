@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -15,7 +14,7 @@ import {
 } from "@/components/ui/select";
 
 interface AgentLoginFormProps {
-  onSubmit: (region: string, idNumber: string) => void;
+  onSubmit: (region: string) => void;
   isLoading?: boolean;
   error?: string | null;
 }
@@ -28,12 +27,11 @@ const regions = [
 
 const AgentLoginForm = ({ onSubmit, isLoading = false, error = null }: AgentLoginFormProps) => {
   const [region, setRegion] = useState("");
-  const [idNumber, setIdNumber] = useState("");
   const { t } = useLanguage();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(region, idNumber);
+    onSubmit(region);
   };
 
   return (
@@ -59,19 +57,6 @@ const AgentLoginForm = ({ onSubmit, isLoading = false, error = null }: AgentLogi
               ))}
             </SelectContent>
           </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="idNumber">{t('idNumber')}</Label>
-          <Input
-            id="idNumber"
-            type="text"
-            value={idNumber}
-            onChange={(e) => setIdNumber(e.target.value)}
-            required
-            disabled={isLoading}
-            pattern="[0-9]+"
-            title="يرجى إدخال أرقام فقط"
-          />
         </div>
         <Button type="submit" className="w-full" disabled={isLoading || !region}>
           {isLoading ? (

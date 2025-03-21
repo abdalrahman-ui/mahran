@@ -1,11 +1,14 @@
 
 const arTranslations = {
   welcome: 'مرحبًا بك في موقع مهران للخدمات اللوجستية',
+  welcomeMessage: 'نظام تذاكر مهران للخدمات اللوجستية - الإصدار التجريبي',
   admin: 'الإدارة',
   managers: 'المدراء',
   supervisors: 'المشرفين',
   agents: 'المناديب',
   login: 'تسجيل الدخول',
+  loginToSystem: 'تسجيل الدخول للنظام',
+  staff: 'الموظفين',
   username: 'اسم المستخدم',
   password: 'كلمة المرور',
   submit: 'إرسال',
@@ -79,7 +82,9 @@ const arTranslations = {
   tickets: 'التذاكر',
   pendingTickets: 'تذاكر قيد الانتظار',
   language: 'اللغة',
-  back: 'رجوع'
+  back: 'رجوع',
+  name: 'الاسم',
+  key: 'المفتاح'
 };
 
 export default arTranslations;

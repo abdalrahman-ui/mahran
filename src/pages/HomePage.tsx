@@ -9,17 +9,24 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LockIcon, User, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const HomePage = () => {
   const { login, agentLogin, isLoading, error } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { t, toggleLanguage, currentLanguage } = useLanguage();
+  const { t, toggleLanguage, currentLanguage, language, setLanguage } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>("staff");
 
-  const handleStaffLogin = async (username: string, password: string) => {
+  const handleStaffLogin = async () => {
     try {
-      const user = await login(username, password);
+      const user = await login();
       const state = location.state as { returnUrl?: string };
       const returnUrl = state?.returnUrl;
 
@@ -42,9 +49,9 @@ const HomePage = () => {
     }
   };
 
-  const handleAgentLogin = async (region: string, idNumber: string) => {
+  const handleAgentLogin = async (region: string) => {
     try {
-      await agentLogin(region, idNumber);
+      await agentLogin(region);
       navigate("/agent/dashboard");
     } catch (error) {
       console.error("Agent login error:", error);
@@ -53,13 +60,22 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col items-center justify-center p-4">
-      <Button 
-        variant="ghost" 
-        className="absolute top-4 right-4" 
-        onClick={toggleLanguage}
-      >
-        {currentLanguage === 'ar' ? 'English' : 'العربية'}
-      </Button>
+      <div className="absolute top-4 right-4 flex gap-2">
+        <Select 
+          value={language} 
+          onValueChange={setLanguage}
+        >
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder={t('language')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ar">العربية</SelectItem>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="hi">हिन्दी</SelectItem>
+            <SelectItem value="ur">اردو</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-primary mb-2">
