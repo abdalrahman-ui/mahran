@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   ListChecks,
@@ -18,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserRole } from "@/types";
 
 const AdminLinks = [
   { href: "/admin/dashboard", label: "dashboard", icon: LayoutDashboard },
@@ -43,19 +45,25 @@ const AgentLinks = [
   { href: "/agent/new-ticket", label: "newTicket", icon: MessageSquare },
 ];
 
-const Sidebar = () => {
+// Add interface to define props for Sidebar component
+interface SidebarProps {
+  role: UserRole;
+}
+
+const Sidebar = ({ role }: SidebarProps) => {
   const { t } = useLanguage();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  // Use the role prop to determine which links to show
   const links =
-    user?.role === "admin"
+    role === "admin"
       ? AdminLinks
-      : user?.role === "manager"
+      : role === "manager"
         ? ManagerLinks
-        : user?.role === "supervisor"
+        : role === "supervisor"
           ? SupervisorLinks
-          : user?.role === "agent"
+          : role === "agent"
             ? AgentLinks
             : [];
 
