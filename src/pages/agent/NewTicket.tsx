@@ -25,7 +25,7 @@ const AgentNewTicket = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [ticketType, setTicketType] = useState<TicketType | ''>('');
+  const [ticketType, setTicketType] = useState<TicketType | null>(null);
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
   const [files, setFiles] = useState<FileList | null>(null);
@@ -81,7 +81,7 @@ const AgentNewTicket = () => {
             <div>
               <Label htmlFor="ticketType">{t('type')}</Label>
               <Select
-                value={ticketType}
+                value={ticketType || "unselected"}
                 onValueChange={(value) => setTicketType(value as TicketType)}
               >
                 <SelectTrigger id="ticketType">
@@ -93,6 +93,7 @@ const AgentNewTicket = () => {
                       {type.name}
                     </SelectItem>
                   ))}
+                  <SelectItem value="unselected">{t('selectTicketType')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -28,7 +28,7 @@ export const WorkInfoSection = ({ formData, setFormData }: WorkInfoSectionProps)
       <div>
         <Label htmlFor="sponsorshipType">نوع الكفالة</Label>
         <Select 
-          value={formData.sponsorshipType}
+          value={formData.sponsorshipType || "none"}
           onValueChange={(value) => setFormData({ ...formData, sponsorshipType: value })}
         >
           <SelectTrigger>
@@ -38,13 +38,14 @@ export const WorkInfoSection = ({ formData, setFormData }: WorkInfoSectionProps)
             <SelectItem value="company">كفالة شركة</SelectItem>
             <SelectItem value="personal">كفالة شخصية</SelectItem>
             <SelectItem value="transfer">نقل كفالة</SelectItem>
+            <SelectItem value="none">غير محدد</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div>
         <Label htmlFor="appType">نوع التطبيق</Label>
         <Select
-          value={formData.appType}
+          value={formData.appType || "none"}
           onValueChange={(value) => setFormData({ ...formData, appType: value })}
         >
           <SelectTrigger>
@@ -56,13 +57,14 @@ export const WorkInfoSection = ({ formData, setFormData }: WorkInfoSectionProps)
             <SelectItem value="shgardi">شقردي</SelectItem>
             <SelectItem value="mrsool">مرسول</SelectItem>
             <SelectItem value="other">أخرى</SelectItem>
+            <SelectItem value="none">غير محدد</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div>
         <Label htmlFor="vehicleType">نوع المركبة</Label>
         <Select
-          value={formData.vehicleType}
+          value={formData.vehicleType || "none"}
           onValueChange={(value) => setFormData({ ...formData, vehicleType: value })}
         >
           <SelectTrigger>
@@ -71,6 +73,7 @@ export const WorkInfoSection = ({ formData, setFormData }: WorkInfoSectionProps)
           <SelectContent>
             <SelectItem value="car">سيارة</SelectItem>
             <SelectItem value="motorcycle">دراجة نارية</SelectItem>
+            <SelectItem value="none">غير محدد</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import RequireAuth from "@/components/layout/RequireAuth";
@@ -17,8 +18,8 @@ const AdminUsers = () => {
   const { t } = useLanguage();
   const [users, setUsers] = useState<User[]>(getUsers());
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   
   // نموذج إضافة مستخدم جديد
   const [newUser, setNewUser] = useState({
@@ -105,11 +106,11 @@ const AdminUsers = () => {
       user.lastName.toLowerCase().includes(searchTerm.toLowerCase());
       
     const matchesRole = 
-      roleFilter === "" || 
+      roleFilter === "all" || 
       user.role === roleFilter;
       
     const matchesStatus = 
-      statusFilter === "" || 
+      statusFilter === "all" || 
       user.status === statusFilter;
       
     return matchesSearch && matchesRole && matchesStatus;
@@ -228,7 +229,7 @@ const AdminUsers = () => {
                   <SelectValue placeholder={t('role')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('allRoles')}</SelectItem>
+                  <SelectItem value="all">{t('allRoles')}</SelectItem>
                   <SelectItem value="admin">{t('admin')}</SelectItem>
                   <SelectItem value="manager">{t('managers')}</SelectItem>
                   <SelectItem value="supervisor">{t('supervisors')}</SelectItem>
@@ -242,7 +243,7 @@ const AdminUsers = () => {
                   <SelectValue placeholder={t('status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('allStatuses')}</SelectItem>
+                  <SelectItem value="all">{t('allStatuses')}</SelectItem>
                   <SelectItem value="pending">{t('pending')}</SelectItem>
                   <SelectItem value="approved">{t('approved')}</SelectItem>
                   <SelectItem value="rejected">{t('rejected')}</SelectItem>
@@ -345,3 +346,4 @@ const AdminUsers = () => {
 };
 
 export default AdminUsers;
+
